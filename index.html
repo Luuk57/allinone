@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>App Dashboard met Toegangsbeheer</title>
+  <title>App Dashboard met Vochtmonitor</title>
   
   <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='100' fill='%230056b3'/><text x='50%' y='52%' font-size='180' font-family='Arial, sans-serif' font-weight='bold' fill='white' text-anchor='middle' dominant-baseline='middle'>APP</text></svg>">
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='100' fill='%230056b3'/><text x='50%' y='52%' font-size='180' font-family='Arial, sans-serif' font-weight='bold' fill='white' text-anchor='middle' dominant-baseline='middle'>APP</text></svg>">
@@ -12,6 +12,9 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  
+  <!-- SheetJS voor Excel Export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
   <style>
     :root {
@@ -42,19 +45,39 @@
     .user-info { display: flex; align-items: center; gap: 15px; font-size: 0.9rem; }
 
     .nav-tabs { display: flex; gap: 8px; margin-bottom: 20px; border-bottom: 1px solid #ddd; padding-bottom: 10px; flex-wrap: wrap; }
-    .tab-btn { background: #e2e8f0; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.9rem; transition: background 0.2s; }
+    .tab-btn { background: #e2e8f0; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.9rem; transition: background 0.2s; display: none; }
     .tab-btn.active { background: var(--primary); color: white; }
-    .tab-btn.admin-only { background: #e0e7ff; color: #3730a3; display: none; }
-    .tab-btn.admin-only.active { background: #3730a3; color: white; }
+    .tab-btn.admin-tab { background: #e0e7ff; color: #3730a3; }
+    .tab-btn.admin-tab.active { background: #3730a3; color: white; }
 
     .tab-content { display: none; }
     .tab-content.active { display: block; }
 
     .btn { background: var(--primary); color: white; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-size: 0.95rem; font-weight: bold; width: 100%; transition: background 0.2s; }
     .btn:hover { background: var(--primary-dark); }
+    .btn-excel { background: #1f7344; width: auto; }
+    .btn-excel:hover { background: #15572b; }
     .btn-danger { background: var(--danger); width: auto; padding: 6px 12px; font-size: 0.85rem; }
     .btn-danger:hover { background: #bd2130; }
     .btn-warning { background: var(--warning); color: #000; width: auto; padding: 6px 12px; font-size: 0.85rem; }
+
+    /* Vochtmonitor elementen */
+    .progress-box { background: #e9ecef; border-radius: 8px; padding: 15px; margin-bottom: 20px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.1); }
+    .progress-info { display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 8px; font-size: 1rem; }
+    .progress-bar-container { width: 100%; background: #cbd5e1; height: 20px; border-radius: 10px; overflow: hidden; }
+    .progress-bar { height: 100%; width: 0%; background: var(--success); transition: width 0.3s, background 0.3s; }
+
+    .pos-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; margin-bottom: 20px; }
+    .pos-tile { background: #ffffff; border: 2px solid var(--border-color); border-radius: 10px; padding: 10px; text-align: center; cursor: pointer; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; justify-content: space-between; height: 140px; box-shadow: 0 2px 5px rgba(0,0,0,0.04); }
+    .pos-tile:hover { border-color: var(--primary); transform: translateY(-2px); }
+    .pos-tile img { width: 65px; height: 65px; object-fit: cover; border-radius: 8px; margin-bottom: 6px; border: 1px solid #e2e8f0; }
+    .pos-tile span { font-size: 0.85rem; font-weight: bold; color: #1e293b; }
+
+    .modal-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 1000; padding: 15px; }
+    .modal { background: white; padding: 25px; border-radius: 12px; width: 100%; max-width: 400px; text-align: center; box-shadow: 0 5px 20px rgba(0,0,0,0.2); }
+    .amount-buttons { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 15px; }
+    .amount-btn { background: #f1f5f9; border: 1px solid var(--border-color); padding: 12px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 1rem; }
+    .amount-btn:hover { background: var(--primary); color: white; }
 
     .table-container { overflow-x: auto; margin-top: 15px; }
     table { width: 100%; border-collapse: collapse; font-size: 0.85rem; min-width: 600px; }
@@ -66,10 +89,6 @@
     .bg-admin { background-color: #3730a3; }
     .bg-user { background-color: #059669; }
     .bg-pending { background-color: #d97706; }
-
-    .placeholder-box { background: #f8fafc; border: 2px dashed var(--border-color); padding: 40px; text-align: center; border-radius: 10px; color: #64748b; font-size: 1.1rem; }
-    
-    /* Rechten selectie tabellen */
     select.perm-select { padding: 4px; border-radius: 4px; border: 1px solid var(--border-color); font-size: 0.8rem; }
   </style>
 
@@ -79,7 +98,7 @@
 </head>
 <body>
 
-  <!-- 1. INLOG / REGISTRATIE SCHERM -->
+  <!-- 1. INLOGSCHERM -->
   <div id="authContainer">
     <h2 id="authTitle">Inloggen</h2>
     <div class="auth-form-group">
@@ -97,41 +116,69 @@
     <p id="authError" style="color: var(--danger); font-size: 0.85rem; text-align: center; margin-top: 10px;"></p>
   </div>
 
-  <!-- 1.B PENDING SCHERM (Wachten op goedkeuring) -->
+  <!-- 1.B STANDBY SCHERM -->
   <div id="pendingContainer">
     <h2>Account in afwachting</h2>
-    <p style="margin-bottom: 20px; color: #64748b; font-size: 0.95rem;">Je account is succesvol geregistreerd, maar staat momenteel op **Standby**. De beheerder (admin) moet je account en toegangsrechten eerst goedkeuren.</p>
+    <p style="margin-bottom: 20px; color: #64748b; font-size: 0.95rem;">Je account is geregistreerd, maar staat op **Standby**. De beheerder moet je account en toegangsrechten eerst goedkeuren.</p>
     <button class="btn btn-danger" onclick="logout()">Uitloggen</button>
   </div>
 
-  <!-- 2. HOOFD APP SCHERM (SCHIL) -->
+  <!-- 2. HOOFD APP SCHERM -->
   <div id="appContainer">
     <div class="app-header">
-      <h1>Centrale Dashboard Schil</h1>
+      <h1>Dashboard & Modules</h1>
       <div class="user-info">
         <span id="userEmailDisplay">Welkom</span>
         <button class="btn btn-danger" onclick="logout()">Uitloggen</button>
       </div>
     </div>
 
-    <!-- Navigatie Tabs -->
+    <!-- Dynamische Tabbladen o.b.v. Rechten -->
     <div class="nav-tabs" id="navTabsContainer">
-      <button class="tab-btn active" onclick="switchTab('homeTab', this)">Home / Dashboard</button>
-      <!-- Module tabs kunnen hier later dynamisch per rechten getoond worden -->
-      <button class="tab-btn admin-only" id="adminTabBtn" onclick="switchTab('adminTab', this)">Gebruikers & Rechten (Admin)</button>
+      <button class="tab-btn" id="tabBtnVocht" onclick="switchTab('vochtTab', this)">Vochtmonitor (1000ml)</button>
+      <button class="tab-btn admin-tab" id="adminTabBtn" onclick="switchTab('adminTab', this)">Gebruikers & Rechten (Admin)</button>
     </div>
 
-    <!-- TAB 1: HOME -->
-    <div id="homeTab" class="tab-content active">
-      <div class="placeholder-box">
-        <h3>Toegang verleend!</h3>
-        <p style="margin-top: 10px;" id="welcomeSubText">Je bent ingelogd en hebt goedkeuring.</p>
+    <!-- MODULE 1: VOCHTMONITOR -->
+    <div id="vochtTab" class="tab-content">
+      <div class="progress-box">
+        <div class="progress-info">
+          <span id="progressText">Totaal Vandaag: 0 ml / 1000 ml</span>
+          <span id="progressPercentage">0%</span>
+        </div>
+        <div class="progress-bar-container">
+          <div id="progressBar" class="progress-bar"></div>
+        </div>
+      </div>
+
+      <h3 style="margin-bottom: 15px; color: #333;" id="vochtActionTitle">Tik op een drankje om toe te voegen:</h3>
+      <div id="posGrid" class="pos-grid"></div>
+
+      <div class="actions-bar" style="display:flex; justify-content:space-between; align-items:center; margin-top: 25px; flex-wrap:wrap; gap:10px;">
+        <h3 style="color: #333;">Jouw Vochtinnames Vandaag</h3>
+        <button class="btn btn-excel" onclick="exportVochtExcel()">Excel Export (.xlsx)</button>
+      </div>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Tijdstip</th>
+              <th>Drankje</th>
+              <th>Hoeveelheid (ml)</th>
+              <th>Actie</th>
+            </tr>
+          </thead>
+          <tbody id="vochtTableBody">
+            <tr><td colspan="4" style="text-align:center;">Geen inname geregistreerd vandaag.</td></tr>
+          </tbody>
+        </table>
       </div>
     </div>
 
-    <!-- TAB 2: GEBRUIKERS & RECHTEN BEHEER (Admin) -->
+    <!-- TAB: BEHEER (Admin) -->
     <div id="adminTab" class="tab-content">
-      <h3 style="margin-bottom: 15px; color: var(--primary);">Gebruikersbeheer & Module-rechten</h3>
+      <h3 style="margin-bottom: 15px; color: var(--primary);">Gebruikersbeheer & Rechten</h3>
       <div class="table-container">
         <table>
           <thead>
@@ -139,17 +186,28 @@
               <th>E-mailadres</th>
               <th>Status</th>
               <th>Rol</th>
-              <th>Bloeddruk</th>
-              <th>Vochtmonitor</th>
-              <th>Rittenlog</th>
+              <th>Vochtmonitor Recht</th>
               <th>Acties</th>
             </tr>
           </thead>
           <tbody id="usersTableBody">
-            <tr><td colspan="7" style="text-align:center;">Laden...</td></tr>
+            <tr><td colspan="5" style="text-align:center;">Laden...</td></tr>
           </tbody>
         </table>
       </div>
+    </div>
+  </div>
+
+  <!-- MODAL VOOR HOEVEELHEID -->
+  <div id="amountModal" class="modal-overlay">
+    <div class="modal">
+      <h3 id="modalDrinkTitle" style="color:var(--primary); margin-bottom:15px;">Drankje</h3>
+      <div id="amountButtonsContainer" class="amount-buttons"></div>
+      <div style="display:flex; gap:8px; margin-top:15px;">
+        <input type="number" id="customAmountInput" placeholder="ml..." style="flex:1; padding:10px; border:1px solid var(--border-color); border-radius:6px;">
+        <button class="btn" onclick="submitCustomAmount()" style="width:auto;">Toevoegen</button>
+      </div>
+      <button class="btn" style="background:#6c757d; width:100%; margin-top:10px;" onclick="closeModal()">Annuleren</button>
     </div>
   </div>
 
@@ -172,16 +230,31 @@
   const db = firebase.firestore();
 
   let isRegisterMode = false;
+  let currentUser = null;
   let currentUserData = null;
+  let vochtList = [];
+  let amountsList = [75, 150, 200, 250, 300, 500];
+  let selectedDrinkForModal = null;
+
+  const defaultDrinks = [
+    { name: "Cappuccino", image: "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=300&q=80" },
+    { name: "Senseo", image: "https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=300&q=80" },
+    { name: "Thee", image: "https://images.unsplash.com/photo-1576092768241-dec231879fc3?auto=format&fit=crop&w=300&q=80" },
+    { name: "Water", image: "https://images.unsplash.com/photo-1548839140-29a749e1cf4d?auto=format&fit=crop&w=300&q=80" },
+    { name: "Cola", image: "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?auto=format&fit=crop&w=300&q=80" },
+    { name: "Sinas", image: "https://images.unsplash.com/photo-1629203851122-3726ecdf080e?auto=format&fit=crop&w=300&q=80" }
+  ];
 
   auth.onAuthStateChanged(user => {
     if (user) {
+      currentUser = user;
       document.getElementById('authContainer').style.display = 'none';
       document.getElementById('pendingContainer').style.display = 'none';
       document.getElementById('appContainer').style.display = 'none';
-      
       checkUserAccess(user);
     } else {
+      currentUser = null;
+      currentUserData = null;
       document.getElementById('appContainer').style.display = 'none';
       document.getElementById('pendingContainer').style.display = 'none';
       document.getElementById('authContainer').style.display = 'block';
@@ -207,12 +280,11 @@
     if (isRegisterMode) {
       auth.createUserWithEmailAndPassword(email, password)
         .then(cred => {
-          // Nieuwe registratie start standaard op 'pending' (standby) met minimale rechten
           return db.collection('users').doc(cred.user.uid).set({
             email: email,
-            status: 'pending', // standby
+            status: 'pending',
             role: 'user',
-            permissions: { bloeddruk: 'none', vocht: 'none', ritten: 'none' },
+            permissions: { vocht: 'write' },
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
           });
         })
@@ -229,32 +301,17 @@
     db.collection('users').doc(user.uid).get().then(doc => {
       if (doc.exists) {
         currentUserData = doc.data();
-        
-        // Als de gebruiker admin is, altijd toelaten
-        if (currentUserData.role === 'admin') {
-          showApp(user.email, true);
-        } 
-        else if (currentUserData.status === 'pending') {
-          // Nog niet goedgekeurd door admin -> Toon standby scherm
+        if (currentUserData.role === 'admin' || currentUserData.status === 'active') {
+          showApp(user.email);
+        } else {
           document.getElementById('pendingContainer').style.display = 'block';
-        } 
-        else if (currentUserData.status === 'active') {
-          // Goedgekeurd als user
-          showApp(user.email, false);
-        } 
-        else {
-          // Geblokkeerd of geweigerd
-          document.getElementById('pendingContainer').style.display = 'block';
-          document.querySelector('#pendingContainer h2').innerText = 'Toegang geweigerd';
-          document.querySelector('#pendingContainer p').innerText = 'Je account is helaas geweigerd of gedeactiveerd door de beheerder.';
         }
       } else {
-        // Maak profiel aan als het mist (standaard pending)
         db.collection('users').doc(user.uid).set({
           email: user.email,
           status: 'pending',
           role: 'user',
-          permissions: { bloeddruk: 'none', vocht: 'none', ritten: 'none' },
+          permissions: { vocht: 'write' },
           createdAt: firebase.firestore.FieldValue.serverTimestamp()
         }).then(() => {
           document.getElementById('pendingContainer').style.display = 'block';
@@ -263,19 +320,163 @@
     });
   }
 
-  function showApp(email, isAdmin) {
+  function showApp(email) {
     document.getElementById('appContainer').style.display = 'block';
     document.getElementById('userEmailDisplay').innerText = email;
-    
-    if (isAdmin) {
-      document.getElementById('adminTabBtn').style.display = 'block';
-      loadAllUsersForAdmin();
+
+    const isAdmin = currentUserData.role === 'admin';
+    const vochtPerm = currentUserData.permissions ? currentUserData.permissions.vocht : 'none';
+
+    // Toon/verberg Vochtmonitor tab op basis van rechten
+    const tabVocht = document.getElementById('tabBtnVocht');
+    if (isAdmin || vochtPerm !== 'none') {
+      tabVocht.style.display = 'block';
+      switchTab('vochtTab', tabVocht);
+      renderPOSGrid();
+      loadVochtData();
+      
+      // Als user alleen 'read' heeft, verberg de invoertegels
+      if (!isAdmin && vochtPerm === 'read') {
+        document.getElementById('posGrid').style.display = 'none';
+        document.getElementById('vochtActionTitle').innerText = 'Alleen-lezen toegang voor vochtmonitor:';
+      } else {
+        document.getElementById('posGrid').style.display = 'grid';
+        document.getElementById('vochtActionTitle').innerText = 'Tik op een drankje om toe te voegen:';
+      }
     } else {
-      document.getElementById('adminTabBtn').style.display = 'none';
+      tabVocht.style.display = 'none';
+    }
+
+    // Beheerderspaneel tab
+    const adminTab = document.getElementById('adminTabBtn');
+    if (isAdmin) {
+      adminTab.style.display = 'block';
+      loadAllUsersForAdmin();
+      if (tabVocht.style.display === 'none') {
+        switchTab('adminTab', adminTab);
+      }
+    } else {
+      adminTab.style.display = 'none';
     }
   }
 
-  // --- ADMIN: GEBRUIKERS & RECHTEN BEHEER ---
+  // --- VOCHTMONITOR LOGICA (Persoonsgebonden) ---
+  function getLocalDateKey(date = new Date()) {
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+  }
+
+  function renderPOSGrid() {
+    const grid = document.getElementById('posGrid');
+    grid.innerHTML = '';
+    defaultDrinks.forEach(drink => {
+      grid.innerHTML += `
+        <div class="pos-tile" onclick='openModal(${JSON.stringify(drink)})'>
+          <img src="${drink.image}">
+          <span>${drink.name}</span>
+        </div>`;
+    });
+  }
+
+  function openModal(drink) {
+    const isAdmin = currentUserData.role === 'admin';
+    const vochtPerm = currentUserData.permissions ? currentUserData.permissions.vocht : 'none';
+    if (!isAdmin && vochtPerm !== 'write') {
+      alert("Je hebt geen schrijfrechten voor deze module.");
+      return;
+    }
+
+    selectedDrinkForModal = drink;
+    document.getElementById('modalDrinkTitle').innerText = drink.name;
+    const container = document.getElementById('amountButtonsContainer');
+    container.innerHTML = '';
+    amountsList.forEach(amt => {
+      container.innerHTML += `<button class="amount-btn" onclick="addVocht(${amt})">${amt} ml</button>`;
+    });
+    document.getElementById('amountModal').style.display = 'flex';
+  }
+
+  function closeModal() { document.getElementById('amountModal').style.display = 'none'; }
+
+  function submitCustomAmount() {
+    let val = parseInt(document.getElementById('customAmountInput').value);
+    if (!isNaN(val) && val > 0) addVocht(val);
+  }
+
+  function addVocht(amount) {
+    if (!selectedDrinkForModal) return;
+    const record = {
+      userId: currentUser.uid, // Gekoppeld aan ingelogde gebruiker
+      drinkName: selectedDrinkForModal.name,
+      drinkImage: selectedDrinkForModal.image,
+      amount: parseInt(amount),
+      dateKey: getLocalDateKey(),
+      time: new Date().toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' }),
+      timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    };
+    db.collection('vocht_intake').add(record).then(() => {
+      closeModal();
+      document.getElementById('customAmountInput').value = '';
+      loadVochtData();
+    });
+  }
+
+  function loadVochtData() {
+    const todayKey = getLocalDateKey();
+    // Filter strikt op userId van de ingelogde gebruiker zodat niemand anders elkaars data ziet!
+    db.collection('vocht_intake')
+      .where('userId', '==', currentUser.uid)
+      .where('dateKey', '==', todayKey)
+      .get().then(snapshot => {
+        vochtList = [];
+        snapshot.forEach(doc => vochtList.push({ id: doc.id, ...doc.data() }));
+        vochtList.sort((a,b) => (b.time||'').localeCompare(a.time||''));
+        renderVochtTableAndBar();
+      });
+  }
+
+  function renderVochtTableAndBar() {
+    const tbody = document.getElementById('vochtTableBody');
+    tbody.innerHTML = '';
+    let totalMl = 0;
+    const isAdmin = currentUserData.role === 'admin';
+    const vochtPerm = currentUserData.permissions ? currentUserData.permissions.vocht : 'none';
+    const canWrite = isAdmin || vochtPerm === 'write';
+
+    if (vochtList.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Geen inname vandaag.</td></tr>';
+    } else {
+      vochtList.forEach(item => {
+        totalMl += item.amount;
+        let deleteBtn = canWrite ? `<button class="btn btn-danger" onclick="deleteVocht('${item.id}')">Verwijderen</button>` : '-';
+        tbody.innerHTML += `
+          <tr>
+            <td>${item.time}</td>
+            <td><div style="display:flex; align-items:center; gap:8px;"><img src="${item.drinkImage}" style="width:35px;height:35px;object-fit:cover;border-radius:4px;"><b>${item.drinkName}</b></div></td>
+            <td><b>${item.amount} ml</b></td>
+            <td>${deleteBtn}</td>
+          </tr>`;
+      });
+    }
+
+    let pct = Math.min(Math.round((totalMl / 1000) * 100), 100);
+    document.getElementById('progressText').innerText = `Totaal Vandaag: ${totalMl} ml / 1000 ml`;
+    document.getElementById('progressPercentage').innerText = `${pct}%`;
+    let bar = document.getElementById('progressBar');
+    bar.style.width = `${pct}%`;
+    bar.style.background = totalMl > 1000 ? 'var(--danger)' : (totalMl >= 800 ? 'var(--warning)' : 'var(--success)');
+  }
+
+  function deleteVocht(id) { db.collection('vocht_intake').doc(id).delete().then(loadVochtData); }
+
+  function exportVochtExcel() {
+    let data = vochtList.map(i => ({ "Datum": i.dateKey, "Tijd": i.time, "Drankje": i.drinkName, "Hoeveelheid (ml)": i.amount }));
+    let ws = XLSX.utils.json_to_sheet(data);
+    let wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Mijn Vocht Vandaag");
+    XLSX.writeFile(wb, `MijnVocht_${new Date().toISOString().slice(0,10)}.xlsx`);
+  }
+
+  // --- ADMIN BEHEER ---
   function loadAllUsersForAdmin() {
     db.collection('users').get().then(snapshot => {
       const tbody = document.getElementById('usersTableBody');
@@ -283,11 +484,9 @@
       snapshot.forEach(doc => {
         let u = doc.data();
         let uid = doc.id;
-        
         let statusBadge = u.status === 'active' ? `<span class="badge bg-admin">Actief</span>` : `<span class="badge bg-pending">Standby</span>`;
         let roleBadge = u.role === 'admin' ? `<span class="badge bg-admin">Admin</span>` : `<span class="badge bg-user">User</span>`;
-        
-        let p = u.permissions || { bloeddruk: 'none', vocht: 'none', ritten: 'none' };
+        let p = u.permissions || { vocht: 'none' };
 
         tbody.innerHTML += `
           <tr>
@@ -295,43 +494,29 @@
             <td>${statusBadge}</td>
             <td>${roleBadge}</td>
             <td>
-              <select class="perm-select" onchange="updatePerm('${uid}', 'bloeddruk', this.value)">
-                <option value="none" ${p.bloeddruk==='none'?'selected':''}>Geen</option>
-                <option value="read" ${p.bloeddruk==='read'?'selected':''}>Lezen</option>
-                <option value="write" ${p.bloeddruk==='write'?'selected':''}>Schrijven</option>
-              </select>
-            </td>
-            <td>
-              <select class="perm-select" onchange="updatePerm('${uid}', 'vocht', this.value)">
+              <select class="perm-select" onchange="updateUserPerm('${uid}', this.value)">
                 <option value="none" ${p.vocht==='none'?'selected':''}>Geen</option>
                 <option value="read" ${p.vocht==='read'?'selected':''}>Lezen</option>
                 <option value="write" ${p.vocht==='write'?'selected':''}>Schrijven</option>
               </select>
             </td>
             <td>
-              <select class="perm-select" onchange="updatePerm('${uid}', 'ritten', this.value)">
-                <option value="none" ${p.ritten==='none'?'selected':''}>Geen</option>
-                <option value="read" ${p.ritten==='read'?'selected':''}>Lezen</option>
-                <option value="write" ${p.ritten==='write'?'selected':''}>Schrijven</option>
-              </select>
-            </td>
-            <td>
-              ${u.status === 'pending' ? `<button class="btn btn-warning" onclick="setStatus('${uid}', 'active')">Goedkeuren</button>` : `<button class="btn btn-danger" onclick="setStatus('${uid}', 'pending')">Blokkeren</button>`}
+              ${u.status === 'pending' ? `<button class="btn btn-warning" onclick="setUserStatus('${uid}', 'active')">Goedkeuren</button>` : `<button class="btn btn-danger" onclick="setUserStatus('${uid}', 'pending')">Blokkeren</button>`}
             </td>
           </tr>`;
       });
     });
   }
 
-  function setStatus(uid, newStatus) {
-    db.collection('users').doc(uid).update({ status: newStatus }).then(loadAllUsersFormAdmin || loadAllUsersForAdmin);
+  function setUserStatus(uid, status) {
+    db.collection('users').doc(uid).update({ status: status }).then(loadAllUsersForAdmin);
   }
 
-  function updatePerm(uid, moduleKey, value) {
+  function updateUserPerm(uid, val) {
     db.collection('users').doc(uid).get().then(doc => {
-      let currentPerms = doc.data().permissions || {};
-      currentPerms[moduleKey] = value;
-      db.collection('users').doc(uid).update({ permissions: currentPerms });
+      let p = doc.data().permissions || {};
+      p.vocht = val;
+      db.collection('users').doc(uid).update({ permissions: p });
     });
   }
 
