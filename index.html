@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>App Dashboard</title>
+  
+  <!-- Ingebouwd App-icoon -->
+  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='100' fill='%230056b3'/><text x='50%' y='52%' font-size='180' font-family='Arial, sans-serif' font-weight='bold' fill='white' text-anchor='middle' dominant-baseline='middle'>APP</text></svg>">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='100' fill='%230056b3'/><text x='50%' y='52%' font-size='180' font-family='Arial, sans-serif' font-weight='bold' fill='white' text-anchor='middle' dominant-baseline='middle'>APP</text></svg>">
+
+  <!-- Firebase SDKs (Auth + Firestore) -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+  <style>
+    :root {
+      --primary: #0056b3;
+      --primary-dark: #004090;
+      --success: #28a745;
+      --danger: #dc3545;
+      --bg-color: #f4f6f9;
+      --card-bg: #ffffff;
+      --text-color: #333333;
+      --border-color: #d1d5db;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
+    body { background-color: var(--bg-color); color: var(--text-color); padding: 15px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+
+    /* Auth Scherm (Inloggen / Registreren) */
+    #authContainer { width: 100%; max-width: 400px; background: var(--card-bg); padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); display: none; }
+    #authContainer h2 { color: var(--primary); margin-bottom: 20px; text-align: center; }
+    .auth-form-group { margin-bottom: 15px; display: flex; flex-direction: column; }
+    .auth-form-group label { font-weight: bold; margin-bottom: 5px; font-size: 0.9rem; }
+    .auth-form-group input { padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 1rem; }
+    
+    /* Hoofd App Scherm (Schil) */
+    #appContainer { width: 100%; max-width: 1200px; background: var(--card-bg); padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); display: none; }
+    
+    .app-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 15px; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+    .app-header h1 { color: var(--primary); font-size: 1.4rem; }
+    .user-info { display: flex; align-items: center; gap: 15px; font-size: 0.9rem; }
+
+    /* Navigatie Tabs */
+    .nav-tabs { display: flex; gap: 8px; margin-bottom: 20px; border-bottom: 1px solid #ddd; padding-bottom: 10px; flex-wrap: wrap; }
+    .tab-btn { background: #e2e8f0; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.9rem; transition: background 0.2s; }
+    .tab-btn.active { background: var(--primary); color: white; }
+    .tab-btn.admin-only { background: #e0e7ff; color: #3730a3; display: none; }
+    .tab-btn.admin-only.active { background: #3730a3; color: white; }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* Knoppen & Tabellen */
+    .btn { background: var(--primary); color: white; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-size: 0.95rem; font-weight: bold; width: 100%; transition: background 0.2s; }
+    .btn:hover { background: var(--primary-dark); }
+    .btn-danger { background: var(--danger); width: auto; padding: 6px 12px; font-size: 0.85rem; }
+    .btn-danger:hover { background: #bd2130; }
+
+    .table-container { overflow-x: auto; margin-top: 15px; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+    th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+    th { background: var(--primary); color: white; }
+    tr:nth-child(even) { background: #f8fafc; }
+
+    .badge { padding: 4px 8px; border-radius: 4px; font-weight: bold; color: white; font-size: 0.8rem; }
+    .bg-admin { background-color: #3730a3; }
+    .bg-user { background-color: #059669; }
+
+    .placeholder-box { background: #f8fafc; border: 2px dashed var(--border-color); padding: 40px; text-align: center; border-radius: 10px; color: #64748b; font-size: 1.1rem; }
+  </style>
+
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0056b3">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+</head>
+<body>
+
+  <!-- 1. INLOG / REGISTRATIE SCHERM -->
+  <div id="authContainer">
+    <h2 id="authTitle">Inloggen</h2>
+    <div class="auth-form-group">
+      <label>E-mailadres</label>
+      <input type="email" id="authEmail" placeholder="naam@voorbeeld.nl">
+    </div>
+    <div class="auth-form-group">
+      <label>Wachtwoord</label>
+      <input type="password" id="authPassword" placeholder="••••••••">
+    </div>
+    <button class="btn" id="authSubmitBtn" onclick="handleAuthSubmit()" style="margin-bottom: 10px;">Inloggen</button>
+    <p style="text-align: center; font-size: 0.85rem; cursor: pointer; color: var(--primary);" onclick="toggleAuthMode()">
+      <span id="authToggleText">Nog geen account? Registreer hier</span>
+    </p>
+    <p id="authError" style="color: var(--danger); font-size: 0.85rem; text-align: center; margin-top: 10px;"></p>
+  </div>
+
+  <!-- 2. HOOFD APP SCHERM (SCHIL) -->
+  <div id="appContainer">
+    <div class="app-header">
+      <h1>Centrale Dashboard Schil</h1>
+      <div class="user-info">
+        <span id="userEmailDisplay">Welkom</span>
+        <button class="btn btn-danger" onclick="logout()">Uitloggen</button>
+      </div>
+    </div>
+
+    <!-- Navigatie Tabs binnen de Schil -->
+    <div class="nav-tabs">
+      <button class="tab-btn active" onclick="switchTab('homeTab', this)">Home / Dashboard</button>
+      <!-- Admin tabblad wordt automatisch zichtbaar als de ingelogde gebruiker admin is -->
+      <button class="tab-btn admin-only" id="adminTabBtn" onclick="switchTab('adminTab', this)">Gebruikersbeheer (Admin)</button>
+    </div>
+
+    <!-- TAB 1: HOME (Hier komen straks je modules in) -->
+    <div id="homeTab" class="tab-content active">
+      <div class="placeholder-box">
+        <h3>App Schil staat klaar!</h3>
+        <p style="margin-top: 10px;">Dit is de veilige basisomgeving. Hier gaan we binnenkort je modules (Bloeddruk, Vochtmonitor, Rittenlog) in integreren.</p>
+      </div>
+    </div>
+
+    <!-- TAB 2: GEBRUIKERSBEHEER (Alleen zichtbaar voor Admin) -->
+    <div id="adminTab" class="tab-content">
+      <h3 style="margin-bottom: 15px; color: var(--primary);">Geregistreerde Gebruikers & Beheer</h3>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>E-mailadres</th>
+              <th>Rol</th>
+              <th>Actie / Rechten Wijzigen</th>
+            </tr>
+          </thead>
+          <tbody id="usersTableBody">
+            <tr><td colspan="3" style="text-align:center;">Laden...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js').catch(e => console.log(e));
+  }
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBWaKFaJ1sUhSvXqK2pOCSDwJ3eMqDJag8",
+    authDomain: "dialysedbase.firebaseapp.com",
+    projectId: "dialysedbase",
+    storageBucket: "dialysedbase.firebasestorage.app",
+    messagingSenderId: "36507381882",
+    appId: "1:36507381882:web:6cf9725f87c963c51ccbc3"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+
+  let isRegisterMode = false;
+  let currentUserData = null;
+
+  // --- AUTHENTICATIE & LOGIN STATUS ---
+  auth.onAuthStateChanged(user => {
+    if (user) {
+      document.getElementById('authContainer').style.display = 'none';
+      document.getElementById('appContainer').style.display = 'block';
+      document.getElementById('userEmailDisplay').innerText = user.email;
+      
+      // Haal gebruikersrol op uit Firestore
+      checkUserRole(user);
+    } else {
+      document.getElementById('appContainer').style.display = 'none';
+      document.getElementById('authContainer').style.display = 'block';
+    }
+  });
+
+  function toggleAuthMode() {
+    isRegisterMode = !isRegisterMode;
+    document.getElementById('authTitle').innerText = isRegisterMode ? 'Account Registreren' : 'Inloggen';
+    document.getElementById('authSubmitBtn').innerText = isRegisterMode ? 'Registreren' : 'Inloggen';
+    document.getElementById('authToggleText').innerText = isRegisterMode ? 'Al een account? Log hier in' : 'Nog geen account? Registreer hier';
+    document.getElementById('authError').innerText = '';
+  }
+
+  function handleAuthSubmit() {
+    const email = document.getElementById('authEmail').value;
+    const password = document.getElementById('authPassword').value;
+    const errEl = document.getElementById('authError');
+    errEl.innerText = '';
+
+    if (!email || !password) {
+      errEl.innerText = 'Vul alle velden in.';
+      return;
+    }
+
+    if (isRegisterMode) {
+      auth.createUserWithEmailAndPassword(email, password)
+        .then(cred => {
+          // Sla standaard op als 'user'. (De eerste gebruiker kun je handmatig in Firebase op admin zetten)
+          return db.collection('users').doc(cred.user.uid).set({
+            email: email,
+            role: 'user',
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+          });
+        })
+        .catch(err => errEl.innerText = err.message);
+    } else {
+      auth.signInWithEmailAndPassword(email, password)
+        .catch(err => errEl.innerText = err.message);
+    }
+  }
+
+  function logout() {
+    auth.signOut();
+  }
+
+  // --- ROL BEHEER & ADMIN CONTROLE ---
+  function checkUserRole(user) {
+    db.collection('users').doc(user.uid).get().then(doc => {
+      if (doc.exists) {
+        currentUserData = doc.data();
+        if (currentUserData.role === 'admin') {
+          document.getElementById('adminTabBtn').style.display = 'block';
+          loadAllUsersForAdmin();
+        } else {
+          document.getElementById('adminTabBtn').style.display = 'none';
+        }
+      } else {
+        // Mocht de gebruiker nog niet in Firestore staan, maak hem aan als user
+        db.collection('users').doc(user.uid).set({
+          email: user.email,
+          role: 'user',
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+      }
+    });
+  }
+
+  // --- ADMIN: GEBRUIKERSBEHEER ---
+  function loadAllUsersForAdmin() {
+    db.collection('users').get().then(snapshot => {
+      const tbody = document.getElementById('usersTableBody');
+      tbody.innerHTML = '';
+      snapshot.forEach(doc => {
+        let u = doc.data();
+        let uid = doc.id;
+        let badgeClass = u.role === 'admin' ? 'bg-admin' : 'bg-user';
+        let actionBtn = u.role === 'admin' 
+          ? `<button class="btn btn-danger" onclick="setUserRole('${uid}', 'user')Maak User</button>`
+          : `<button class="btn" style="padding:6px 12px; font-size:0.85rem;" onclick="setUserRole('${uid}', 'admin')">Maak Admin</button>`;
+
+        tbody.innerHTML += `
+          <tr>
+            <td>${u.email}</td>
+            <td><span class="badge ${badgeClass}">${u.role.toUpperCase()}</span></td>
+            <td>${actionBtn}</td>
+          </tr>`;
+      });
+    });
+  }
+
+  function setUserRole(uid, newRole) {
+    db.collection('users').doc(uid).update({ role: newRole }).then(() => {
+      loadAllUsersForAdmin();
+    });
+  }
+
+  // --- UI NAVIGATIE TABS ---
+  function switchTab(tabId, btn) {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+    document.getElementById(tabId).classList.add('active');
+    btn.classList.add('active');
+  }
+</script>
+
+</body>
+</html>
