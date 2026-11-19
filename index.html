@@ -71,6 +71,8 @@
     /* Knoppen & Formulieren */
     .btn { background: var(--primary); color: white; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-size: 0.95rem; font-weight: bold; width: 100%; transition: background 0.2s; }
     .btn:hover { background: var(--primary-dark); }
+    .btn-success { background: var(--success); width: auto; }
+    .btn-success:hover { background: #218838; }
     .btn-excel { background: #1f7344; width: auto; }
     .btn-excel:hover { background: #15572b; }
     .btn-pdf { background: #d9534f; width: auto; }
@@ -80,6 +82,28 @@
     .btn-danger { background: var(--danger); width: auto; padding: 6px 12px; font-size: 0.85rem; }
     .btn-danger:hover { background: #bd2130; }
     .btn-warning { background: var(--warning); color: #000; width: auto; padding: 6px 12px; font-size: 0.85rem; }
+    .btn-sm { padding: 6px 12px; font-size: 0.85rem; width: auto; }
+    .btn-group { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
+
+    .readonly-field { background: #f1f5f9 !important; font-weight: bold; color: #1e293b; }
+
+    /* Kleurcodering voor UF advies */
+    .uf-green { background-color: #d4edda !important; color: #155724 !important; border-color: #c3e6cb !important; font-weight: bold; }
+    .uf-orange { background-color: #fff3cd !important; color: #856404 !important; border-color: #ffeeba !important; font-weight: bold; }
+    .uf-red { background-color: #f8d7da !important; color: #721c24 !important; border-color: #f5c6cb !important; font-weight: bold; }
+
+    .checkbox-row { display: flex; align-items: center; gap: 10px; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; background: #fff; }
+    .checkbox-row input { width: 18px; height: 18px; cursor: pointer; }
+
+    .nurse-checkbox-container { border: 1px solid var(--border-color); border-radius: 6px; padding: 10px; max-height: 150px; overflow-y: auto; background: #fff; display: flex; flex-direction: column; gap: 8px; }
+    .nurse-checkbox-item { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; cursor: pointer; font-weight: normal !important; margin-bottom: 0 !important; }
+    .nurse-checkbox-item input { width: 16px; height: 16px; cursor: pointer; }
+
+    .add-nurse-box { display: flex; gap: 8px; margin-top: 8px; }
+    .add-nurse-box input { flex: 1; padding: 6px 10px; font-size: 0.85rem; }
+
+    .search-box { padding: 9px; width: 250px; border: 1px solid var(--border-color); border-radius: 6px; }
+    .status-badge { padding: 4px 8px; border-radius: 4px; font-size: 0.85rem; font-weight: bold; display: inline-block; }
 
     /* VOORTGANGSBALK 1000ML */
     .progress-box { background: #e9ecef; border-radius: 8px; padding: 15px; margin-bottom: 20px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.1); }
@@ -129,13 +153,12 @@
     .stat-red { color: var(--danger); }
 
     .form-card { background: #f8fafc; border: 1px solid var(--border-color); padding: 20px; border-radius: 10px; margin-bottom: 20px; }
-    .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px; }
+    .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-bottom: 15px; }
     .form-group { display: flex; flex-direction: column; }
+    .form-group.full { grid-column: 1 / -1; }
     label { font-weight: bold; margin-bottom: 6px; font-size: 0.85rem; color: #1e293b; }
     input, select, textarea { padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.95rem; background: #fff; }
-    textarea { resize: vertical; height: 40px; }
-
-    .uf-preview-box { background: #ffffff; border: 1px solid var(--border-color); border-radius: 8px; padding: 12px 15px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+    textarea { resize: vertical; }
 
     .time-input-group { display: flex; gap: 6px; align-items: center; }
     .time-input-group input { flex: 1; min-width: 0; }
@@ -172,7 +195,7 @@
   </style>
 
   <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#0056b3">
+  <meta name="theme-color" content="#176b52">
   <meta name="apple-mobile-web-app-capable" content="yes">
 </head>
 <body>
@@ -275,7 +298,7 @@
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
           </div>
           <h3>Dialyse Beheer</h3>
-          <p>Drooggewicht (109kg), UF-advies & sessies</p>
+          <p>Nacht/Dag sessies, UF-advies & verslag</p>
         </div>
 
         <!-- Tegel Bloeddruk & Hartslag -->
@@ -322,74 +345,169 @@
 
     <!-- TAB 1: DIALYSE BEHEER MODULE -->
     <div id="dialyseTab" class="tab-content">
-      <div class="form-card" id="dialyseFormCard">
-        <h3 style="margin-bottom: 15px; color: var(--primary);">Nieuwe Dialysesessie Registreren</h3>
-        <form onsubmit="handleDialyseSubmit(event)">
-          <div class="form-grid">
-            <div class="form-group">
-              <label>Startdatum (bijv. avond/nacht)</label>
-              <input type="date" id="dialyseStartDate" required oninput="updateUfPreview()">
-            </div>
-            <div class="form-group">
-              <label>Einddatum (bij nachtdialyse 2e dag)</label>
-              <input type="date" id="dialyseEndDate" oninput="updateUfPreview()">
-            </div>
-            <div class="form-group">
-              <label>Voorgewicht (kg)</label>
-              <input type="number" step="0.1" id="preWeightInput" placeholder="bijv. 112.4" required oninput="updateUfPreview()">
-            </div>
-            <div class="form-group">
-              <label>Drooggewicht (kg)</label>
-              <input type="number" step="0.1" id="dryWeightInput" value="109" required oninput="updateUfPreview()">
-            </div>
-            <div class="form-group">
-              <label>Na-gewicht / Eindgewicht (kg, optioneel)</label>
-              <input type="number" step="0.1" id="postWeightInput" placeholder="bijv. 109.1">
-            </div>
-            <div class="form-group">
-              <label>Opmerkingen</label>
-              <input type="text" id="dialyseNoteInput" placeholder="bijv. Nachtdialyse, verloop...">
-            </div>
-          </div>
-
-          <div class="uf-preview-box">
-            <div>
-              <span style="font-size:0.85rem; color:#475569;">Berekende UF (Voorgewicht - Drooggewicht + 0.3): </span>
-              <strong id="ufCalcValue" style="font-size:1.1rem;">-</strong>
-            </div>
-            <span id="ufAdviceBadge" class="badge bg-gray">Vul voorgewicht in</span>
-          </div>
-
-          <button type="submit" class="btn">Dialysesessie Opslaan</button>
-        </form>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
+        <h2 style="color: var(--primary); font-size: 1.25rem;">Dialyse Beheer</h2>
+        <span id="dryWeightLabel" style="font-size: 0.9rem; color: #555;">Huidig Drooggewicht: 118.0 kg</span>
       </div>
 
-      <div class="actions-bar">
-        <h3 style="color: #333;">Dialyse Historie</h3>
-        <div style="display: flex; gap: 10px;">
-          <button class="btn btn-excel" onclick="exportDialyseExcel()">Excel (.xlsx)</button>
-          <button class="btn btn-pdf" onclick="window.print()">Print / PDF</button>
+      <div class="sub-tabs">
+        <button class="sub-tab-btn active" onclick="switchDialyseSubTab('dialyseFormSub', this)">Nieuwe Sessie / Bewerken</button>
+        <button class="sub-tab-btn" onclick="switchDialyseSubTab('dialyseListSub', this)">Overzicht & Exporteren</button>
+      </div>
+
+      <!-- SUBTAB 1A: DIALYSE FORMULIER -->
+      <div id="dialyseFormSub" class="sub-content active">
+        <div class="form-card" id="dialyseFormCard">
+          <form id="dialysisForm" onsubmit="handleDialyseSubmit(event)">
+            <input type="hidden" id="recordId" value="">
+            
+            <div class="form-grid">
+              <div class="form-group">
+                <label>ID (Automatisch uit Afspraak Tijdstip)</label>
+                <input type="text" id="displayId" class="readonly-field" readonly placeholder="Wordt automatisch ingevuld">
+              </div>
+
+              <div class="form-group">
+                <label>Soort Dialyse</label>
+                <select id="soortDialyse" onchange="onSoortOfAfspraakChanged()">
+                  <option value="Nacht">Nacht (Duur +7u | Correctie 0.3)</option>
+                  <option value="Dag">Dag (Duur +4u | Correctie 0.6)</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label>Afspraak Tijdstip</label>
+                <input type="datetime-local" id="afspraakTijd" onchange="onAfspraakTijdChanged()">
+              </div>
+
+              <div class="form-group">
+                <label>Start Tijdstip</label>
+                <input type="datetime-local" id="startTijd" onchange="calculateDuration()">
+              </div>
+
+              <div class="form-group">
+                <label>Eind Tijdstip</label>
+                <input type="datetime-local" id="eindTijd" onchange="calculateDuration()">
+              </div>
+
+              <div class="form-group">
+                <label>Duur (Automatisch berekend)</label>
+                <input type="text" id="duur" class="readonly-field" readonly placeholder="0u 0m">
+              </div>
+
+              <div class="form-group">
+                <label>Pre Gewicht (kg)</label>
+                <input type="number" step="0.1" id="preGewicht" oninput="calculateCalculations()" placeholder="bijv. 120.5">
+              </div>
+
+              <div class="form-group">
+                <label>Post Gewicht (kg)</label>
+                <input type="number" step="0.1" id="postGewicht" oninput="calculateCalculations()" placeholder="bijv. 117.5">
+              </div>
+
+              <div class="form-group">
+                <label>UF Advies (L) [Kleurcode]</label>
+                <input type="text" id="ufAdvies" class="readonly-field" readonly placeholder="Wordt berekend">
+              </div>
+
+              <div class="form-group">
+                <label>UF Ingesteld (L)</label>
+                <input type="number" step="0.1" id="ufIngesteld" placeholder="Ingestelde UF">
+              </div>
+
+              <div class="form-group">
+                <label>UF Werkelijk (Pre - Post) (L)</label>
+                <input type="text" id="ufWerkelijk" class="readonly-field" readonly placeholder="Wordt automatisch berekend">
+              </div>
+
+              <!-- Verpleging: Meerdere selecties + Live toevoegen -->
+              <div class="form-group full">
+                <label>Betrokken Verpleging (Selecteer één of meerdere)</label>
+                <div id="nurseCheckboxes" class="nurse-checkbox-container"></div>
+                <div class="add-nurse-box">
+                  <input type="text" id="newNurseName" placeholder="Nieuwe verpleegkundige naam...">
+                  <button type="button" class="btn btn-sm" onclick="addNewNurseLive()">+ Toevoegen</button>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>Fragmin 2500</label>
+                <select id="fragmin2500">
+                  <option value="Nee">Nee</option>
+                  <option value="Ja">Ja</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label>Fragnin 5000</label>
+                <select id="fragnin5000">
+                  <option value="Nee">Nee</option>
+                  <option value="Ja">Ja</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label>IJzer</label>
+                <div class="checkbox-row">
+                  <input type="checkbox" id="ijzer">
+                  <label for="ijzer" style="margin-bottom:0; cursor:pointer; font-weight:normal;">IJzer toegediend</label>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>Epo</label>
+                <div class="checkbox-row">
+                  <input type="checkbox" id="epo">
+                  <label for="epo" style="margin-bottom:0; cursor:pointer; font-weight:normal;">Epo toegediend</label>
+                </div>
+              </div>
+
+              <div class="form-group full">
+                <label>Verslag / Bijzonderheden</label>
+                <textarea id="verslag" rows="3" placeholder="Typ hier opmerkingen of bijzonderheden..."></textarea>
+              </div>
+            </div>
+
+            <div class="btn-group">
+              <button type="submit" class="btn btn-success">Opslaan in Firebase</button>
+              <button type="button" class="btn btn-secondary" onclick="resetDialyseForm()">Formulier Leegmaken</button>
+            </div>
+          </form>
         </div>
       </div>
 
-      <div class="table-container">
-        <table>
-          <thead>
-            <tr>
-              <th>Datum / Periode</th>
-              <th>Voorgewicht</th>
-              <th>Drooggewicht</th>
-              <th>Na-gewicht</th>
-              <th>Berekende UF</th>
-              <th>UF Advies</th>
-              <th>Opmerking</th>
-              <th>Actie</th>
-            </tr>
-          </thead>
-          <tbody id="dialyseTableBody">
-            <tr><td colspan="8" style="text-align:center;">Geen dialysesessies gevonden.</td></tr>
-          </tbody>
-        </table>
+      <!-- SUBTAB 1B: DIALYSE OVERZICHT & EXPORT -->
+      <div id="dialyseListSub" class="sub-content">
+        <div class="actions-bar">
+          <input type="text" id="searchBox" class="search-box" placeholder="Zoek in records..." onkeyup="filterDialyseRecords()">
+          <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <button class="btn btn-excel" onclick="exportDialyseExcel()">Exporteer naar Excel (.xlsx)</button>
+            <button class="btn btn-secondary" onclick="window.print()">Print naar PDF</button>
+            <button class="btn" style="width:auto;" onclick="loadDialyseRecords()">Gegevens Vernieuwen</button>
+          </div>
+        </div>
+
+        <div class="table-container">
+          <table id="recordsTable">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Afspraak Tijd</th>
+                <th>Soort</th>
+                <th>Pre Gew.</th>
+                <th>Post Gew.</th>
+                <th>Droog Gew.</th>
+                <th>UF Advies</th>
+                <th>UF Werk.</th>
+                <th>Verpleging</th>
+                <th>Acties</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody">
+              <tr><td colspan="10" style="text-align:center;">Geen dialysesessies gevonden.</td></tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
 
@@ -524,7 +642,7 @@
               <input type="text" id="newDrinkName" placeholder="bijv. Latte Macchiato" required>
             </div>
             
-            <div class="form-group" style="grid-column: 1 / -1;">
+            <div class="form-group full">
               <label>Kies een levensechte foto uit de bibliotheek (of plak hieronder een eigen afbeeldings-URL)</label>
               <div id="iconPickerGrid" class="icon-picker-grid"></div>
             </div>
@@ -875,7 +993,8 @@
   let currentUserData = null;
 
   // Module lijsten
-  let dialyseList = [];
+  let allDialyseRecords = [];
+  let nursesList = ['Marissa', 'Iris', 'Alice', 'Irmee', 'Sandra'];
   let bpList = [];
   let drinksList = defaultDrinks.slice();
   let amountsList = [75, 150, 200, 250, 300, 500];
@@ -973,9 +1092,6 @@
 
     let visibleCount = 0;
 
-    const startDateInput = document.getElementById('dialyseStartDate');
-    if (startDateInput && !startDateInput.value) startDateInput.value = getLocalDateKey();
-
     // 1. Dialyse Beheer
     const hasDialyse = isAdmin || dialysePerm !== 'none';
     document.getElementById('tabBtnDialyse').style.display = hasDialyse ? 'block' : 'none';
@@ -983,6 +1099,7 @@
     if (hasDialyse) {
       visibleCount++;
       document.getElementById('dialyseFormCard').style.display = (isAdmin || dialysePerm === 'write') ? 'block' : 'none';
+      loadDialyseSettings();
       loadDialyseRecords();
     }
 
@@ -1044,6 +1161,13 @@
     if (btn) btn.classList.add('active');
   }
 
+  function switchDialyseSubTab(subId, btn) {
+    document.querySelectorAll('#dialyseTab .sub-content').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('#dialyseTab .sub-tab-btn').forEach(el => el.classList.remove('active'));
+    document.getElementById(subId).classList.add('active');
+    if (btn) btn.classList.add('active');
+  }
+
   function switchSubTab(subId, btn) {
     document.querySelectorAll('#rittenTab .sub-content').forEach(el => el.classList.remove('active'));
     document.querySelectorAll('#rittenTab .sub-tab-btn').forEach(el => el.classList.remove('active'));
@@ -1062,10 +1186,406 @@
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
   }
 
+  function canWriteDialyse() {
+    if (!currentUserData) return false;
+    if (currentUserData.role === 'admin') return true;
+    return (currentUserData.permissions && currentUserData.permissions.dialyse === 'write');
+  }
+
   function canWriteVocht() {
     if (!currentUserData) return false;
     if (currentUserData.role === 'admin') return true;
     return (currentUserData.permissions && currentUserData.permissions.vocht === 'write');
+  }
+
+  // --- MODULE 0: DIALYSE BEHEER ---
+  function loadDialyseSettings() {
+    db.collection('settings').doc('config').get().then(doc => {
+      if (doc.exists) {
+        const data = doc.data();
+        nursesList = data.nurses || ['Marissa', 'Iris', 'Alice', 'Irmee', 'Sandra'];
+      } else {
+        nursesList = ['Marissa', 'Iris', 'Alice', 'Irmee', 'Sandra'];
+        db.collection('settings').doc('config').set({ nurses: nursesList }).catch(() => {});
+      }
+      renderNurseCheckboxes(getSelectedNurses());
+      calculateCalculations();
+    }).catch(err => console.error("Fout bij laden instellingen: ", err));
+  }
+
+  function addNewNurseLive() {
+    if (!canWriteDialyse()) return;
+    const input = document.getElementById('newNurseName');
+    const name = input.value.trim();
+    if (!name) return;
+
+    if (!nursesList.includes(name)) {
+      nursesList.push(name);
+      db.collection('settings').doc('config').set({ nurses: nursesList }, { merge: true }).then(() => {
+        let selected = getSelectedNurses();
+        selected.push(name);
+        renderNurseCheckboxes(selected);
+        input.value = '';
+      });
+    }
+  }
+
+  function renderNurseCheckboxes(selectedNurses = []) {
+    const container = document.getElementById('nurseCheckboxes');
+    container.innerHTML = '';
+    
+    if (nursesList.length === 0) {
+      container.innerHTML = '<span style="color:#777; font-size:0.85rem;">Geen verpleegkundigen gevonden.</span>';
+      return;
+    }
+
+    nursesList.forEach(name => {
+      const isChecked = selectedNurses.includes(name) ? 'checked' : '';
+      const div = document.createElement('label');
+      div.className = 'nurse-checkbox-item';
+      div.innerHTML = `<input type="checkbox" value="${name}" ${isChecked} class="nurse-chk"> ${name}`;
+      container.appendChild(div);
+    });
+  }
+
+  function getSelectedNurses() {
+    const checkboxes = document.querySelectorAll('.nurse-chk:checked');
+    let selected = [];
+    checkboxes.forEach(chk => selected.push(chk.value));
+    return selected;
+  }
+
+  function onAfspraakTijdChanged() {
+    const afspraakVal = document.getElementById('afspraakTijd').value;
+    if (!afspraakVal) return;
+
+    const startInput = document.getElementById('startTijd');
+    if (!startInput.value) {
+      startInput.value = afspraakVal;
+    }
+
+    const d = new Date(afspraakVal);
+    if (!isNaN(d)) {
+      const day = String(d.getDate()).padStart(2, '0');
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const year = d.getFullYear();
+      const hours = String(d.getHours()).padStart(2, '0');
+      const minutes = String(d.getMinutes()).padStart(2, '0');
+      const generatedId = `${day}${month}${year}${hours}${minutes}`;
+      document.getElementById('recordId').value = generatedId;
+      document.getElementById('displayId').value = generatedId;
+    }
+
+    updateEindTijdEnDuur();
+    calculateCalculations();
+  }
+
+  function onSoortOfAfspraakChanged() {
+    updateEindTijdEnDuur();
+    calculateCalculations();
+  }
+
+  function updateEindTijdEnDuur() {
+    const startVal = document.getElementById('startTijd').value;
+    const soort = document.getElementById('soortDialyse').value;
+    
+    if (startVal) {
+      const startDate = new Date(startVal);
+      if (!isNaN(startDate)) {
+        const hoursToAdd = (soort === 'Nacht') ? 7 : 4;
+        startDate.setHours(startDate.getHours() + hoursToAdd);
+
+        const yr = startDate.getFullYear();
+        const mth = String(startDate.getMonth() + 1).padStart(2, '0');
+        const day = String(startDate.getDate()).padStart(2, '0');
+        const hrs = String(startDate.getHours()).padStart(2, '0');
+        const mins = String(startDate.getMinutes()).padStart(2, '0');
+
+        document.getElementById('eindTijd').value = `${yr}-${mth}-${day}T${hrs}:${mins}`;
+      }
+    }
+    calculateDuration();
+  }
+
+  function calculateDuration() {
+    const start = new Date(document.getElementById('startTijd').value);
+    const eind = new Date(document.getElementById('eindTijd').value);
+    const duurField = document.getElementById('duur');
+
+    if (!isNaN(start) && !isNaN(eind) && eind > start) {
+      const diffMs = eind - start;
+      const hours = Math.floor(diffMs / 3600000);
+      const minutes = Math.floor((diffMs % 3600000) / 60000);
+      duurField.value = `${hours}u ${minutes}m`;
+    } else {
+      duurField.value = '';
+    }
+  }
+
+  function getDryWeightForSession(currentSessionTime, allSortedRecords) {
+    let currentDry = 118.0;
+    let chronological = [...allSortedRecords].reverse();
+    
+    for (let r of chronological) {
+      if (r.afspraakTijd && currentSessionTime && r.afspraakTijd >= currentSessionTime) {
+        break;
+      }
+      let post = parseFloat(r.postGewicht);
+      if (!isNaN(post) && post > 0) {
+        if (post < currentDry) {
+          currentDry = post;
+        }
+      }
+    }
+    return currentDry;
+  }
+
+  function calculateCalculations() {
+    const preGewicht = parseFloat(document.getElementById('preGewicht').value);
+    const postGewicht = parseFloat(document.getElementById('postGewicht').value);
+    const soort = document.getElementById('soortDialyse').value;
+    const afspraakVal = document.getElementById('afspraakTijd').value;
+    const ufAdviesField = document.getElementById('ufAdvies');
+    const ufWerkelijkField = document.getElementById('ufWerkelijk');
+
+    let activeDryWeight = 118.0;
+    if (allDialyseRecords.length > 0) {
+      activeDryWeight = getDryWeightForSession(afspraakVal, allDialyseRecords);
+    }
+    document.getElementById('dryWeightLabel').innerText = `Huidig Drooggewicht: ${activeDryWeight.toFixed(1)} kg`;
+
+    if (!isNaN(preGewicht)) {
+      const correctie = (soort === 'Nacht') ? 0.3 : 0.6;
+      const advies = preGewicht - activeDryWeight + correctie;
+      ufAdviesField.value = advies.toFixed(2) + ' kg';
+
+      ufAdviesField.className = 'readonly-field';
+      if (advies >= 4.5) {
+        ufAdviesField.classList.add('uf-red');
+      } else if (advies >= 4.0) {
+        ufAdviesField.classList.add('uf-orange');
+      } else {
+        ufAdviesField.classList.add('uf-green');
+      }
+    } else {
+      ufAdviesField.value = '';
+      ufAdviesField.className = 'readonly-field';
+    }
+
+    if (!isNaN(preGewicht) && !isNaN(postGewicht)) {
+      const werkelijk = preGewicht - postGewicht;
+      ufWerkelijkField.value = werkelijk.toFixed(2) + ' kg';
+    } else {
+      ufWerkelijkField.value = '';
+    }
+  }
+
+  function handleDialyseSubmit(event) {
+    event.preventDefault();
+    if (!canWriteDialyse()) return;
+
+    let docId = document.getElementById('recordId').value;
+    if (!docId) {
+      const now = new Date();
+      docId = `${String(now.getDate()).padStart(2,'0')}${String(now.getMonth()+1).padStart(2,'0')}${now.getFullYear()}${String(now.getHours()).padStart(2,'0')}${String(now.getMinutes()).padStart(2,'0')}`;
+      document.getElementById('recordId').value = docId;
+      document.getElementById('displayId').value = docId;
+    }
+
+    const selectedNurses = getSelectedNurses().join(', ');
+
+    const formData = {
+      userId: currentUser.uid,
+      id: docId,
+      afspraakTijd: document.getElementById('afspraakTijd').value,
+      soortDialyse: document.getElementById('soortDialyse').value,
+      startTijd: document.getElementById('startTijd').value,
+      eindTijd: document.getElementById('eindTijd').value,
+      duur: document.getElementById('duur').value,
+      preGewicht: parseFloat(document.getElementById('preGewicht').value) || 0,
+      postGewicht: parseFloat(document.getElementById('postGewicht').value) || 0,
+      ufAdvies: document.getElementById('ufAdvies').value,
+      ufIngesteld: document.getElementById('ufIngesteld').value,
+      ufWerkelijk: document.getElementById('ufWerkelijk').value,
+      verpleging: selectedNurses,
+      fragmin2500: document.getElementById('fragmin2500').value,
+      fragnin5000: document.getElementById('fragnin5000').value,
+      ijzer: document.getElementById('ijzer').checked ? 'Ja' : 'Nee',
+      epo: document.getElementById('epo').checked ? 'Ja' : 'Nee',
+      verslag: document.getElementById('verslag').value,
+      timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    };
+
+    db.collection('dialyse_records').doc(docId).set(formData).then(() => {
+      alert('Succesvol opgeslagen in Firebase!');
+      resetDialyseForm();
+      loadDialyseRecords();
+      switchDialyseSubTab('dialyseListSub', document.querySelectorAll('#dialyseTab .sub-tab-btn')[1]);
+    }).catch(error => {
+      alert('Fout bij opslaan: ' + error.message);
+    });
+  }
+
+  function resetDialyseForm() {
+    document.getElementById('dialysisForm').reset();
+    document.getElementById('recordId').value = '';
+    document.getElementById('displayId').value = '';
+    document.getElementById('ufAdvies').className = 'readonly-field';
+    renderNurseCheckboxes([]);
+    calculateCalculations();
+  }
+
+  function loadDialyseRecords() {
+    db.collection('dialyse_records').get().then(snapshot => {
+      allDialyseRecords = [];
+      snapshot.forEach(doc => {
+        const d = doc.data();
+        if (!d.userId || d.userId === currentUser.uid || (currentUserData && currentUserData.role === 'admin')) {
+          allDialyseRecords.push({ ...d, id: d.id || doc.id });
+        }
+      });
+      allDialyseRecords.sort((a, b) => (b.afspraakTijd || '').localeCompare(a.afspraakTijd || ''));
+      renderDialyseTable(allDialyseRecords);
+      calculateCalculations();
+      updateHomeDialyseSummary();
+    }).catch(err => {
+      console.error("Fout bij ophalen records: ", err);
+    });
+  }
+
+  function renderDialyseTable(records) {
+    const tbody = document.getElementById('tableBody');
+    tbody.innerHTML = '';
+    const allowEdit = canWriteDialyse();
+
+    if (!records || records.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;">Geen records gevonden in Firebase.</td></tr>';
+      return;
+    }
+
+    let sortedAsc = [...records].sort((a,b) => (a.afspraakTijd || "").localeCompare(b.afspraakTijd || ""));
+    let runningDry = 118.0;
+    let dryWeightMap = {};
+
+    sortedAsc.forEach(r => {
+      let post = parseFloat(r.postGewicht);
+      dryWeightMap[r.id] = runningDry;
+      if (!isNaN(post) && post > 0 && post < runningDry) {
+        runningDry = post;
+      }
+    });
+
+    records.forEach((r) => {
+      let ufVal = String(r.ufAdvies || '');
+      let ufClass = '';
+      let numMatch = parseFloat(ufVal);
+      if (!isNaN(numMatch)) {
+        if (numMatch >= 4.5) ufClass = 'uf-red';
+        else if (numMatch >= 4.0) ufClass = 'uf-orange';
+        else ufClass = 'uf-green';
+      }
+
+      let sessionDry = dryWeightMap[r.id] !== undefined ? dryWeightMap[r.id] : 118.0;
+      const safeJson = encodeURIComponent(JSON.stringify(r));
+      const editBtn = allowEdit
+        ? `<button class="btn btn-sm" onclick="editDialyseRecord('${safeJson}')">Bewerken</button>`
+        : '-';
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${r.id || '-'}</td>
+        <td>${r.afspraakTijd || '-'}</td>
+        <td>${r.soortDialyse || '-'}</td>
+        <td>${r.preGewicht || '-'} kg</td>
+        <td>${r.postGewicht ? r.postGewicht + ' kg' : '-'}</td>
+        <td><b>${sessionDry.toFixed(1)} kg</b></td>
+        <td><span class="status-badge ${ufClass}">${ufVal}</span></td>
+        <td>${r.ufWerkelijk || '-'}</td>
+        <td>${r.verpleging || '-'}</td>
+        <td>${editBtn}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function editDialyseRecord(encodedJson) {
+    const r = JSON.parse(decodeURIComponent(encodedJson));
+    document.getElementById('recordId').value = r.id;
+    document.getElementById('displayId').value = r.id;
+    document.getElementById('soortDialyse').value = r.soortDialyse || 'Nacht';
+    document.getElementById('afspraakTijd').value = r.afspraakTijd || '';
+    document.getElementById('startTijd').value = r.startTijd || '';
+    document.getElementById('eindTijd').value = r.eindTijd || '';
+    document.getElementById('duur').value = r.duur || '';
+    document.getElementById('preGewicht').value = r.preGewicht || '';
+    document.getElementById('postGewicht').value = r.postGewicht || '';
+    document.getElementById('ufIngesteld').value = r.ufIngesteld || '';
+    document.getElementById('fragmin2500').value = r.fragmin2500 || 'Nee';
+    document.getElementById('fragnin5000').value = r.fragnin5000 || 'Nee';
+    
+    document.getElementById('ijzer').checked = (r.ijzer === 'Ja');
+    document.getElementById('epo').checked = (r.epo === 'Ja');
+    
+    document.getElementById('verslag').value = r.verslag || '';
+
+    let nursesListSelected = String(r.verpleging || '').split(',').map(n => n.trim()).filter(Boolean);
+    renderNurseCheckboxes(nursesListSelected);
+
+    calculateCalculations();
+    switchDialyseSubTab('dialyseFormSub', document.querySelectorAll('#dialyseTab .sub-tab-btn')[0]);
+  }
+
+  function filterDialyseRecords() {
+    const query = document.getElementById('searchBox').value.toLowerCase();
+    const filtered = allDialyseRecords.filter(r => {
+      return Object.values(r).some(val => String(val).toLowerCase().includes(query));
+    });
+    renderDialyseTable(filtered);
+  }
+
+  function exportDialyseExcel() {
+    if (!allDialyseRecords || allDialyseRecords.length === 0) {
+      alert("Geen records om te exporteren.");
+      return;
+    }
+
+    let sortedAsc = [...allDialyseRecords].sort((a,b) => (a.afspraakTijd || "").localeCompare(b.afspraakTijd || ""));
+    let runningDry = 118.0;
+    let dryWeightMap = {};
+
+    sortedAsc.forEach(r => {
+      let post = parseFloat(r.postGewicht);
+      dryWeightMap[r.id] = runningDry;
+      if (!isNaN(post) && post > 0 && post < runningDry) {
+        runningDry = post;
+      }
+    });
+
+    let excelData = allDialyseRecords.map(r => ({
+      "Sessie ID": r.id,
+      "Afspraak Tijdstip": r.afspraakTijd,
+      "Soort Dialyse": r.soortDialyse,
+      "Start Tijd": r.startTijd,
+      "Eind Tijd": r.eindTijd,
+      "Duur": r.duur,
+      "Pre Gewicht (kg)": r.preGewicht,
+      "Post Gewicht (kg)": r.postGewicht,
+      "Drooggewicht (kg)": dryWeightMap[r.id] !== undefined ? dryWeightMap[r.id] : 118.0,
+      "UF Advies": r.ufAdvies,
+      "UF Ingesteld": r.ufIngesteld,
+      "UF Werkelijk": r.ufWerkelijk,
+      "Verpleging": r.verpleging,
+      "Fragmin 2500": r.fragmin2500,
+      "Fragmin 5000": r.fragnin5000,
+      "IJzer": r.ijzer,
+      "Epo": r.epo,
+      "Verslag": r.verslag
+    }));
+
+    let worksheet = XLSX.utils.json_to_sheet(excelData);
+    let workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Dialyse Overzicht");
+    XLSX.writeFile(workbook, "Dialyse_Overzicht_Rapport.xlsx");
   }
 
   // --- MODULE 2: POS VOCHT INTAKE & BEHEER ---
@@ -1107,7 +1627,6 @@
         renderDrinksTable();
         renderAmountsTable();
       } else {
-        // Fallback op gedeelde 'config' indien aanwezig
         db.collection('vocht_settings').doc('config').get().then(cfgDoc => {
           if (cfgDoc.exists) {
             const cData = cfgDoc.data();
@@ -1260,7 +1779,6 @@
     }
     bar.style.background = colorVar;
 
-    // Sync naar Home Dashboard kaart
     document.getElementById('dashVochtValue').innerText = `${rawPct}%`;
     document.getElementById('dashVochtSub').innerText = `${totalMl} ml / 1000 ml`;
     const dashBadge = document.getElementById('dashVochtBadge');
@@ -1425,7 +1943,6 @@
     let worksheet = XLSX.utils.json_to_sheet(excelData);
     let workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "VochtInname Vandaag");
-
     XLSX.writeFile(workbook, `Vocht_Inname_${new Date().toISOString().slice(0,10)}.xlsx`);
   }
 
@@ -1453,21 +1970,26 @@
     const badge = document.getElementById('dashDialyseBadge');
     const valEl = document.getElementById('dashDialyseValue');
     const subEl = document.getElementById('dashDialyseSub');
-    if (!dialyseList.length) {
+    if (!allDialyseRecords.length) {
       valEl.innerText = '-';
       subEl.innerText = 'Geen sessie geregistreerd';
       badge.innerText = '-';
       badge.className = 'badge bg-gray';
       return;
     }
-    const latest = dialyseList[0];
-    const adv = getUfAdvice(latest.uf);
+    const latest = allDialyseRecords[0];
+    const numUf = parseFloat(latest.ufAdvies) || 0;
+    let badgeClass = 'bg-green';
+    let label = 'UF < 4.0: Groen';
+    if (numUf >= 4.5) { badgeClass = 'bg-red'; label = 'UF >= 4.5: Rood'; }
+    else if (numUf >= 4.0) { badgeClass = 'bg-orange'; label = 'UF >= 4.0: Oranje'; }
+
     const todayStr = getLocalDateKey();
-    const isToday = latest.startDate === todayStr || latest.endDate === todayStr;
-    valEl.innerText = `UF ${Number(latest.uf || 0).toFixed(1)} L`;
-    subEl.innerText = `${isToday ? 'Vandaag' : 'Laatste'} (${latest.startDate}${latest.endDate && latest.endDate !== latest.startDate ? ' t/m ' + latest.endDate : ''})`;
-    badge.innerText = adv.label;
-    badge.className = `badge ${adv.class}`;
+    const isToday = (latest.afspraakTijd || '').startsWith(todayStr);
+    valEl.innerText = latest.ufAdvies || (latest.soortDialyse || 'Sessie');
+    subEl.innerText = `${isToday ? 'Vandaag' : 'Laatste'} (${latest.soortDialyse || '-'} | ${latest.afspraakTijd ? latest.afspraakTijd.replace('T', ' ') : '-'})`;
+    badge.innerText = label;
+    badge.className = `badge ${badgeClass}`;
   }
 
   // --- ADMIN BEHEER ---
@@ -1533,139 +2055,6 @@
       p[moduleName] = val;
       db.collection('users').doc(uid).update({ permissions: p });
     });
-  }
-
-  // --- MODULE 0: DIALYSE BEHEER ---
-  function calculateUfValue(preWeight, dryWeight) {
-    return Number((preWeight - dryWeight + 0.3).toFixed(2));
-  }
-
-  function getUfAdvice(uf) {
-    if (uf >= 4.5) return { label: 'UF >= 4.5: Rood (Hoog)', class: 'bg-red' };
-    if (uf >= 4.0) return { label: 'UF >= 4.0: Oranje (Let op)', class: 'bg-orange' };
-    return { label: 'UF < 4.0: Groen (Ok)', class: 'bg-green' };
-  }
-
-  function updateUfPreview() {
-    const pre = parseFloat(document.getElementById('preWeightInput').value);
-    const dry = parseFloat(document.getElementById('dryWeightInput').value);
-    const valEl = document.getElementById('ufCalcValue');
-    const badgeEl = document.getElementById('ufAdviceBadge');
-
-    if (isNaN(pre) || isNaN(dry)) {
-      valEl.innerText = '-';
-      badgeEl.innerText = 'Vul voorgewicht in';
-      badgeEl.className = 'badge bg-gray';
-      return;
-    }
-
-    const uf = calculateUfValue(pre, dry);
-    const adv = getUfAdvice(uf);
-    valEl.innerText = `${uf.toFixed(2)} (${pre} - ${dry} + 0.3)`;
-    badgeEl.innerText = adv.label;
-    badgeEl.className = `badge ${adv.class}`;
-  }
-
-  function handleDialyseSubmit(event) {
-    event.preventDefault();
-    const startDate = document.getElementById('dialyseStartDate').value;
-    const endDate = document.getElementById('dialyseEndDate').value || startDate;
-    const preWeight = parseFloat(document.getElementById('preWeightInput').value);
-    const dryWeight = parseFloat(document.getElementById('dryWeightInput').value);
-    const postWeightRaw = document.getElementById('postWeightInput').value;
-    const postWeight = postWeightRaw !== '' ? parseFloat(postWeightRaw) : null;
-    const note = document.getElementById('dialyseNoteInput').value.trim();
-
-    if (isNaN(preWeight) || isNaN(dryWeight)) return;
-    const uf = calculateUfValue(preWeight, dryWeight);
-
-    const record = {
-      userId: currentUser.uid,
-      startDate,
-      endDate,
-      preWeight,
-      dryWeight,
-      postWeight,
-      uf,
-      note,
-      timestamp: firebase.firestore.FieldValue.serverTimestamp()
-    };
-
-    db.collection('dialyse_records').add(record).then(() => {
-      document.getElementById('preWeightInput').value = '';
-      document.getElementById('postWeightInput').value = '';
-      document.getElementById('dialyseNoteInput').value = '';
-      document.getElementById('dialyseEndDate').value = '';
-      updateUfPreview();
-      loadDialyseRecords();
-    }).catch(e => alert(e.message));
-  }
-
-  function loadDialyseRecords() {
-    db.collection('dialyse_records').where('userId', '==', currentUser.uid).get().then(snapshot => {
-      dialyseList = [];
-      snapshot.forEach(doc => dialyseList.push({ id: doc.id, ...doc.data() }));
-      dialyseList.sort((a, b) => ((b.startDate || '') + (b.endDate || '')).localeCompare((a.startDate || '') + (a.endDate || '')));
-      renderDialyseTable();
-      updateHomeDialyseSummary();
-    });
-  }
-
-  function renderDialyseTable() {
-    const tbody = document.getElementById('dialyseTableBody');
-    tbody.innerHTML = '';
-    const isAdmin = currentUserData.role === 'admin';
-    const dialysePerm = currentUserData.permissions ? currentUserData.permissions.dialyse : 'none';
-    const canWrite = isAdmin || dialysePerm === 'write';
-
-    if (dialyseList.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">Geen dialysesessies gevonden.</td></tr>';
-      return;
-    }
-
-    dialyseList.forEach(item => {
-      const adv = getUfAdvice(Number(item.uf || 0));
-      const periodLabel = item.endDate && item.endDate !== item.startDate
-        ? `${item.startDate} &rarr; ${item.endDate}`
-        : (item.startDate || '-');
-      const delBtn = canWrite ? `<button class="btn btn-danger" onclick="deleteDialyse('${item.id}')">Verwijderen</button>` : '-';
-
-      tbody.innerHTML += `
-        <tr>
-          <td><b>${periodLabel}</b></td>
-          <td>${item.preWeight} kg</td>
-          <td>${item.dryWeight} kg</td>
-          <td>${item.postWeight !== null && item.postWeight !== undefined ? item.postWeight + ' kg' : '-'}</td>
-          <td><b>${Number(item.uf || 0).toFixed(2)}</b></td>
-          <td><span class="badge ${adv.class}">${adv.label}</span></td>
-          <td>${item.note || '-'}</td>
-          <td>${delBtn}</td>
-        </tr>`;
-    });
-  }
-
-  function deleteDialyse(id) {
-    if (confirm("Dialysesessie verwijderen?")) {
-      db.collection('dialyse_records').doc(id).delete().then(loadDialyseRecords);
-    }
-  }
-
-  function exportDialyseExcel() {
-    if (dialyseList.length === 0) { alert("Geen dialysesessies om te exporteren."); return; }
-    let data = dialyseList.map(i => ({
-      "Startdatum": i.startDate,
-      "Einddatum": i.endDate || i.startDate,
-      "Voorgewicht (kg)": i.preWeight,
-      "Drooggewicht (kg)": i.dryWeight,
-      "Na-gewicht (kg)": i.postWeight ?? '',
-      "UF": i.uf,
-      "UF Advies": getUfAdvice(Number(i.uf || 0)).label,
-      "Opmerking": i.note || ''
-    }));
-    let ws = XLSX.utils.json_to_sheet(data);
-    let wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Dialyse");
-    XLSX.writeFile(wb, `Dialyse_${new Date().toISOString().slice(0,10)}.xlsx`);
   }
 
   // --- MODULE 1: BLOEDDRUK & HARTSLAG ---
