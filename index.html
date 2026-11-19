@@ -658,6 +658,7 @@
   let isRegisterMode = false;
   let currentUser = null;
   let currentUserData = null;
+  let vochtUnsubscribe = null;
 
   // Module lijsten
   let dialyseList = [];
@@ -666,6 +667,11 @@
   let dropdownOptions = { Bedrijf: [], Chauffeur: [], Kenteken: [], Vanaf: [], Naar: [] };
 
   auth.onAuthStateChanged(user => {
+    if (vochtUnsubscribe) {
+      vochtUnsubscribe();
+      vochtUnsubscribe = null;
+    }
+
     if (user) {
       currentUser = user;
       document.getElementById('authContainer').style.display = 'none';
@@ -753,7 +759,6 @@
 
     let visibleCount = 0;
 
-    // Standaard startdatum op vandaag zetten voor dialyseformulier
     const startDateInput = document.getElementById('dialyseStartDate');
     if (startDateInput && !startDateInput.value) startDateInput.value = getLocalDateKey();
 
@@ -835,25 +840,71 @@
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
   }
 
+  function extractDocDateKey(data) {
+    const raw = data.dateKey || data.datum || data.date || '';
+    if (typeof raw === 'string' && raw.length >= 10) {
+      return raw.slice(0, 10);
+    }
+    if (data.timestamp && typeof data.timestamp.toDate === 'function') {
+      return getLocalDateKey(data.timestamp.toDate());
+    }
+    return '';
+  }
+
+  function extractIntakeAmount(data) {
+    const raw = data.amount ?? data.ml ?? data.hoeveelheid ?? data.volume ?? 0;
+    const num = Number(raw);
+    return Number.isFinite(num) ? num : 0;
+  }
+
   // --- HOME DASHBOARD SAMENVATTING ---
+  function renderVochtSummaryUI(totalMl) {
+    const pct = Math.round((totalMl / 1000) * 100);
+    document.getElementById('dashVochtValue').innerText = `${pct}%`;
+    document.getElementById('dashVochtSub').innerText = `${totalMl} ml / 1000 ml`;
+    const badge = document.getElementById('dashVochtBadge');
+    badge.innerText = `${pct}%`;
+    badge.className = 'badge ' + (totalMl > 1000 ? 'bg-red' : (totalMl >= 800 ? 'bg-orange' : 'bg-green'));
+  }
+
   function loadHomeVochtSummary() {
     if (!currentUser) return;
     const todayKey = getLocalDateKey();
-    db.collection('vocht_intake')
+
+    if (vochtUnsubscribe) {
+      vochtUnsubscribe();
+      vochtUnsubscribe = null;
+    }
+
+    // Luister live naar documenten met userId; filter op datum van vandaag in client voor maximale compatibiliteit
+    vochtUnsubscribe = db.collection('vocht_intake')
       .where('userId', '==', currentUser.uid)
-      .where('dateKey', '==', todayKey)
-      .get().then(snapshot => {
+      .onSnapshot(snapshot => {
         let totalMl = 0;
         snapshot.forEach(doc => {
-          totalMl += Number(doc.data().amount || 0);
+          const data = doc.data();
+          if (extractDocDateKey(data) === todayKey) {
+            totalMl += extractIntakeAmount(data);
+          }
         });
-        const pct = Math.round((totalMl / 1000) * 100);
-        document.getElementById('dashVochtValue').innerText = `${pct}%`;
-        document.getElementById('dashVochtSub').innerText = `${totalMl} ml / 1000 ml`;
-        const badge = document.getElementById('dashVochtBadge');
-        badge.innerText = `${pct}%`;
-        badge.className = 'badge ' + (totalMl > 1000 ? 'bg-red' : (totalMl >= 800 ? 'bg-orange' : 'bg-green'));
-      }).catch(() => {});
+        renderVochtSummaryUI(totalMl);
+      }, () => {
+        // Fallback bij eventuele query-fout: probeer op dateKey van vandaag
+        db.collection('vocht_intake')
+          .where('dateKey', '==', todayKey)
+          .get()
+          .then(snap => {
+            let totalMl = 0;
+            snap.forEach(doc => {
+              const data = doc.data();
+              if (!data.userId || data.userId === currentUser.uid) {
+                totalMl += extractIntakeAmount(data);
+              }
+            });
+            renderVochtSummaryUI(totalMl);
+          })
+          .catch(() => {});
+      });
   }
 
   function updateHomeBpSummary() {
@@ -875,18 +926,6 @@
     badge.className = `badge ${st.class}`;
   }
 
-  function updateHomeRittenSummary() {
-    const todayStr = getLocalDateKey();
-    const todayRitten = rittenList.filter(r => {
-      const dStr = r.afspraak ? r.afspraak.split('T')[0] : (r.start ? r.start.split('T')[0] : '');
-      return dStr === todayStr;
-    });
-    const doneCount = todayRitten.filter(r => Boolean(r.stop)).length;
-    document.getElementById('dashRittenBadge').innerText = `${todayRitten.length}`;
-    document.getElementById('dashRittenValue').innerText = `${todayRitten.length} ${todayRitten.length === 1 ? 'rit' : 'ritten'}`;
-    document.getElementById('dashRittenSub').innerText = `${doneCount} verreden vandaag`;
-  }
-
   function updateHomeDialyseSummary() {
     const badge = document.getElementById('dashDialyseBadge');
     const valEl = document.getElementById('dashDialyseValue');
@@ -902,7 +941,7 @@
     const adv = getUfAdvice(latest.uf);
     const todayStr = getLocalDateKey();
     const isToday = latest.startDate === todayStr || latest.endDate === todayStr;
-    valEl.innerText = `UF ${latest.uf.toFixed(1)} L`;
+    valEl.innerText = `UF ${Number(latest.uf || 0).toFixed(1)} L`;
     subEl.innerText = `${isToday ? 'Vandaag' : 'Laatste'} (${latest.startDate}${latest.endDate && latest.endDate !== latest.startDate ? ' t/m ' + latest.endDate : ''})`;
     badge.innerText = adv.label;
     badge.className = `badge ${adv.class}`;
@@ -1298,7 +1337,6 @@
       snapshot.forEach(doc => allUserRitten.push({ id: doc.id, ...doc.data() }));
       allUserRitten.sort((a,b) => (a.afspraak || '').localeCompare(b.afspraak || ''));
 
-      // Update Home widget op basis van alle ritten van vandaag
       const now = new Date();
       let todayStr = getLocalDateKey(now);
       const todayRitten = allUserRitten.filter(r => {
