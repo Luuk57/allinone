@@ -79,7 +79,15 @@
     .btn-danger:hover { background: #bd2130; }
     .btn-warning { background: var(--warning); color: #000; width: auto; padding: 6px 12px; font-size: 0.85rem; }
 
-    .app-iframe { width: 100%; height: 78vh; border: 1px solid var(--border-color); border-radius: 8px; background: #fff; }
+    /* VOCHTMONITOR VOORTGANG & SNELKEUZE */
+    .vocht-progress-card { background: #f8fafc; border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; margin-bottom: 20px; }
+    .vocht-progress-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 10px; }
+    .progress-track { width: 100%; height: 24px; background: #e2e8f0; border-radius: 999px; overflow: hidden; }
+    .progress-fill { height: 100%; width: 0%; background: var(--success); transition: width 0.3s ease, background-color 0.3s ease; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.8rem; font-weight: bold; }
+    .quick-drinks-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(135px, 1fr)); gap: 10px; margin-bottom: 15px; }
+    .drink-quick-btn { background: #ffffff; border: 2px solid #bae6fd; border-radius: 10px; padding: 12px 10px; cursor: pointer; text-align: center; transition: all 0.15s; font-weight: bold; color: #0369a1; display: flex; flex-direction: column; gap: 4px; }
+    .drink-quick-btn:hover { background: #e0f2fe; border-color: #0284c7; transform: translateY(-2px); }
+    .drink-quick-btn span { font-size: 0.8rem; color: #475569; font-weight: normal; }
 
     /* Subtabs & Kaarten */
     .sub-tabs { display: flex; gap: 8px; margin-bottom: 15px; }
@@ -133,7 +141,7 @@
     @media print {
       body { background: white; padding: 0; }
       #appContainer { box-shadow: none; padding: 0; max-width: 100%; }
-      .app-header, .nav-tabs, .sub-tabs, .form-card, .actions-bar, .btn, button { display: none !important; }
+      .app-header, .nav-tabs, .sub-tabs, .form-card, .actions-bar, .btn, button, .quick-drinks-grid { display: none !important; }
       table { border: 1px solid #000; }
       th, td { border: 1px solid #000; color: #000; }
     }
@@ -424,9 +432,86 @@
       </div>
     </div>
 
-    <!-- TAB 3: VOCHTMONITOR VIA URL (IFRAME) -->
+    <!-- TAB 3: VOCHTMONITOR MODULE (VOLLEDIG INGEBOUWD) -->
     <div id="vochtTab" class="tab-content">
-      <iframe src="https://luuk57.github.io/Drinken/" class="app-iframe" title="Vochtmonitor"></iframe>
+      <div class="vocht-progress-card">
+        <div class="vocht-progress-top">
+          <div>
+            <h3 style="color: var(--primary); margin-bottom: 4px;">Dagelijkse Vochtbalans</h3>
+            <p style="font-size: 0.9rem; color: #475569;">
+              Gedronken op geselecteerde dag: <strong id="vochtTotalText">0 ml</strong> van <strong id="vochtLimitText">1000 ml</strong>
+              (<span id="vochtRemainingText">1000 ml over</span>)
+            </p>
+          </div>
+          <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+            <label for="vochtDateFilter" style="margin-bottom:0;">Datum:</label>
+            <input type="date" id="vochtDateFilter" onchange="renderVochtTable()" style="padding: 7px 10px;">
+            <div id="vochtLimitControl" style="display:flex; gap:6px; align-items:center;">
+              <label for="vochtLimitInput" style="margin-bottom:0;">Limiet (ml):</label>
+              <input type="number" id="vochtLimitInput" value="1000" min="100" step="50" style="width:95px; padding:7px 10px;">
+              <button type="button" class="btn" style="width:auto; padding:8px 12px; font-size:0.85rem;" onclick="saveVochtLimit()">Opslaan</button>
+            </div>
+          </div>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" id="vochtProgressBar">0%</div>
+        </div>
+      </div>
+
+      <div class="form-card" id="vochtFormCard">
+        <h3 style="margin-bottom: 12px; color: var(--primary);">Snel Drankje Toevoegen</h3>
+        <div class="quick-drinks-grid">
+          <button type="button" class="drink-quick-btn" onclick="quickAddVocht('Kopje koffie', 125)">Koffie<span>+ 125 ml</span></button>
+          <button type="button" class="drink-quick-btn" onclick="quickAddVocht('Glas water', 200)">Glas water<span>+ 200 ml</span></button>
+          <button type="button" class="drink-quick-btn" onclick="quickAddVocht('Mok thee / koffie', 250)">Mok thee<span>+ 250 ml</span></button>
+          <button type="button" class="drink-quick-btn" onclick="quickAddVocht('Kom soep / vla', 250)">Soep / Vla<span>+ 250 ml</span></button>
+          <button type="button" class="drink-quick-btn" onclick="quickAddVocht('Flesje / groot glas', 330)">Groot glas<span>+ 330 ml</span></button>
+          <button type="button" class="drink-quick-btn" onclick="quickAddVocht('Slokje / medicatie', 50)">Medicatie<span>+ 50 ml</span></button>
+        </div>
+
+        <form onsubmit="handleVochtSubmit(event)">
+          <div class="form-grid" style="margin-bottom: 12px;">
+            <div class="form-group">
+              <label>Drank / Omschrijving</label>
+              <input type="text" id="vochtDrinkInput" placeholder="bijv. Water, Koffie, Melk" required>
+            </div>
+            <div class="form-group">
+              <label>Hoeveelheid (ml)</label>
+              <input type="number" id="vochtAmountInput" placeholder="bijv. 200" min="1" required>
+            </div>
+            <div class="form-group">
+              <label>Tijdstip</label>
+              <input type="time" id="vochtTimeInput" required>
+            </div>
+          </div>
+          <button type="submit" class="btn">Vochtinname Toevoegen</button>
+        </form>
+      </div>
+
+      <div class="actions-bar">
+        <h3 style="color: #333;">Geregistreerde Vochtinname</h3>
+        <div style="display: flex; gap: 10px;">
+          <button class="btn btn-excel" onclick="exportVochtExcel()">Excel (.xlsx)</button>
+          <button class="btn btn-pdf" onclick="window.print()">Print / PDF</button>
+        </div>
+      </div>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Datum</th>
+              <th>Tijdstip</th>
+              <th>Drank / Omschrijving</th>
+              <th>Hoeveelheid</th>
+              <th>Actie</th>
+            </tr>
+          </thead>
+          <tbody id="vochtTableBody">
+            <tr><td colspan="5" style="text-align:center;">Geen vochtinname gevonden voor deze dag.</td></tr>
+          </tbody>
+        </table>
+      </div>
     </div>
 
     <!-- TAB 4: RITTENAPP MODULE -->
@@ -663,6 +748,8 @@
   // Module lijsten
   let dialyseList = [];
   let bpList = [];
+  let vochtList = [];
+  let vochtDailyLimit = 1000;
   let rittenList = [];
   let dropdownOptions = { Bedrijf: [], Chauffeur: [], Kenteken: [], Vanaf: [], Naar: [] };
 
@@ -782,13 +869,18 @@
       loadBpMeasurements();
     }
 
-    // 3. Vochtmonitor
+    // 3. Vochtmonitor (ingebouwd)
     const hasVocht = isAdmin || vochtPerm !== 'none';
     document.getElementById('tabBtnVocht').style.display = hasVocht ? 'block' : 'none';
     document.getElementById('tileVocht').style.display = hasVocht ? 'flex' : 'none';
     if (hasVocht) {
       visibleCount++;
-      loadHomeVochtSummary();
+      const canWriteVocht = isAdmin || vochtPerm === 'write';
+      document.getElementById('vochtFormCard').style.display = canWriteVocht ? 'block' : 'none';
+      document.getElementById('vochtLimitControl').style.display = canWriteVocht ? 'flex' : 'none';
+      document.getElementById('vochtDateFilter').value = getLocalDateKey();
+      document.getElementById('vochtTimeInput').value = getCurrentTimeStr();
+      initVochtModule();
     }
 
     // 4. Rittenapp
@@ -824,9 +916,6 @@
     document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
     document.getElementById(tabId).classList.add('active');
     if (btn) btn.classList.add('active');
-    if (tabId === 'homeTab' && currentUser) {
-      loadHomeVochtSummary();
-    }
   }
 
   function switchSubTab(subId, btn) {
@@ -840,73 +929,172 @@
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
   }
 
-  function extractDocDateKey(data) {
-    const raw = data.dateKey || data.datum || data.date || '';
-    if (typeof raw === 'string' && raw.length >= 10) {
-      return raw.slice(0, 10);
-    }
-    if (data.timestamp && typeof data.timestamp.toDate === 'function') {
-      return getLocalDateKey(data.timestamp.toDate());
-    }
-    return '';
+  function getCurrentTimeStr(date = new Date()) {
+    return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
   }
 
-  function extractIntakeAmount(data) {
-    const raw = data.amount ?? data.ml ?? data.hoeveelheid ?? data.volume ?? 0;
-    const num = Number(raw);
-    return Number.isFinite(num) ? num : 0;
-  }
-
-  // --- HOME DASHBOARD SAMENVATTING ---
-  function renderVochtSummaryUI(totalMl) {
-    const pct = Math.round((totalMl / 1000) * 100);
-    document.getElementById('dashVochtValue').innerText = `${pct}%`;
-    document.getElementById('dashVochtSub').innerText = `${totalMl} ml / 1000 ml`;
-    const badge = document.getElementById('dashVochtBadge');
-    badge.innerText = `${pct}%`;
-    badge.className = 'badge ' + (totalMl > 1000 ? 'bg-red' : (totalMl >= 800 ? 'bg-orange' : 'bg-green'));
-  }
-
-  function loadHomeVochtSummary() {
+  // --- MODULE 2: INGEBOUWDE VOCHTMONITOR & DASHBOARD SYNC ---
+  function initVochtModule() {
     if (!currentUser) return;
-    const todayKey = getLocalDateKey();
 
-    if (vochtUnsubscribe) {
-      vochtUnsubscribe();
-      vochtUnsubscribe = null;
-    }
+    // 1. Persoonlijke daglimiet ophalen
+    db.collection('vocht_settings').doc(currentUser.uid).get().then(doc => {
+      if (doc.exists && doc.data().dailyLimit) {
+        vochtDailyLimit = Number(doc.data().dailyLimit) || 1000;
+      } else {
+        vochtDailyLimit = 1000;
+      }
+      document.getElementById('vochtLimitInput').value = vochtDailyLimit;
+      renderVochtTable();
+    }).catch(() => renderVochtTable());
 
-    // Luister live naar documenten met userId; filter op datum van vandaag in client voor maximale compatibiliteit
+    // 2. Live luisteren naar alle vochtinnames van deze gebruiker
+    if (vochtUnsubscribe) vochtUnsubscribe();
     vochtUnsubscribe = db.collection('vocht_intake')
       .where('userId', '==', currentUser.uid)
       .onSnapshot(snapshot => {
-        let totalMl = 0;
+        vochtList = [];
         snapshot.forEach(doc => {
-          const data = doc.data();
-          if (extractDocDateKey(data) === todayKey) {
-            totalMl += extractIntakeAmount(data);
-          }
+          const d = doc.data();
+          const dateKey = (typeof d.dateKey === 'string' && d.dateKey.length >= 10)
+            ? d.dateKey.slice(0, 10)
+            : (d.datum ? String(d.datum).slice(0, 10) : getLocalDateKey());
+          const amount = Number(d.amount ?? d.ml ?? d.hoeveelheid ?? 0) || 0;
+          vochtList.push({
+            id: doc.id,
+            drink: d.drink || d.drank || d.note || 'Drankje',
+            amount,
+            dateKey,
+            time: d.time || '--:--'
+          });
         });
-        renderVochtSummaryUI(totalMl);
-      }, () => {
-        // Fallback bij eventuele query-fout: probeer op dateKey van vandaag
-        db.collection('vocht_intake')
-          .where('dateKey', '==', todayKey)
-          .get()
-          .then(snap => {
-            let totalMl = 0;
-            snap.forEach(doc => {
-              const data = doc.data();
-              if (!data.userId || data.userId === currentUser.uid) {
-                totalMl += extractIntakeAmount(data);
-              }
-            });
-            renderVochtSummaryUI(totalMl);
-          })
-          .catch(() => {});
+        vochtList.sort((a, b) => ((b.dateKey || '') + (b.time || '')).localeCompare((a.dateKey || '') + (a.time || '')));
+        renderVochtTable();
       });
   }
 
+  function saveVochtLimit() {
+    const val = parseInt(document.getElementById('vochtLimitInput').value);
+    if (!val || val < 100) { alert('Voer een geldige daglimiet in (minimaal 100 ml).'); return; }
+    vochtDailyLimit = val;
+    db.collection('vocht_settings').doc(currentUser.uid).set({
+      dailyLimit: vochtDailyLimit,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true }).then(() => {
+      renderVochtTable();
+      alert(`Daglimiet opgeslagen op ${vochtDailyLimit} ml.`);
+    });
+  }
+
+  function quickAddVocht(drinkName, amountMl) {
+    const selectedDate = document.getElementById('vochtDateFilter').value || getLocalDateKey();
+    addVochtRecord(drinkName, amountMl, selectedDate, getCurrentTimeStr());
+  }
+
+  function handleVochtSubmit(event) {
+    event.preventDefault();
+    const drink = document.getElementById('vochtDrinkInput').value.trim();
+    const amount = parseInt(document.getElementById('vochtAmountInput').value);
+    const time = document.getElementById('vochtTimeInput').value || getCurrentTimeStr();
+    const selectedDate = document.getElementById('vochtDateFilter').value || getLocalDateKey();
+
+    if (!drink || !amount || amount <= 0) return;
+
+    addVochtRecord(drink, amount, selectedDate, time).then(() => {
+      document.getElementById('vochtDrinkInput').value = '';
+      document.getElementById('vochtAmountInput').value = '';
+      document.getElementById('vochtTimeInput').value = getCurrentTimeStr();
+    });
+  }
+
+  function addVochtRecord(drink, amount, dateKey, time) {
+    return db.collection('vocht_intake').add({
+      userId: currentUser.uid,
+      drink,
+      amount: Number(amount),
+      dateKey,
+      time,
+      timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    }).catch(e => alert(e.message));
+  }
+
+  function deleteVocht(id) {
+    if (confirm('Vochtinname verwijderen?')) {
+      db.collection('vocht_intake').doc(id).delete();
+    }
+  }
+
+  function renderVochtTable() {
+    const todayKey = getLocalDateKey();
+    const selectedDate = document.getElementById('vochtDateFilter').value || todayKey;
+
+    // 1. Home Dashboard kaart altijd op basis van VANDAAG
+    const todayItems = vochtList.filter(i => i.dateKey === todayKey);
+    const todayTotalMl = todayItems.reduce((sum, i) => sum + i.amount, 0);
+    const todayPct = Math.round((todayTotalMl / vochtDailyLimit) * 100);
+
+    document.getElementById('dashVochtValue').innerText = `${todayPct}%`;
+    document.getElementById('dashVochtSub').innerText = `${todayTotalMl} ml / ${vochtDailyLimit} ml`;
+    const dashBadge = document.getElementById('dashVochtBadge');
+    dashBadge.innerText = `${todayPct}%`;
+    dashBadge.className = 'badge ' + (todayPct > 100 ? 'bg-red' : (todayPct >= 80 ? 'bg-orange' : 'bg-green'));
+
+    // 2. Vochtmonitor tabblad op basis van gekozen datum
+    const dayItems = vochtList.filter(i => i.dateKey === selectedDate);
+    const dayTotalMl = dayItems.reduce((sum, i) => sum + i.amount, 0);
+    const dayPct = Math.round((dayTotalMl / vochtDailyLimit) * 100);
+    const remaining = vochtDailyLimit - dayTotalMl;
+
+    document.getElementById('vochtTotalText').innerText = `${dayTotalMl} ml`;
+    document.getElementById('vochtLimitText').innerText = `${vochtDailyLimit} ml`;
+    document.getElementById('vochtRemainingText').innerText = remaining >= 0
+      ? `${remaining} ml over`
+      : `${Math.abs(remaining)} ml over limiet!`;
+
+    const bar = document.getElementById('vochtProgressBar');
+    bar.style.width = `${Math.min(dayPct, 100)}%`;
+    bar.innerText = `${dayPct}%`;
+    bar.style.backgroundColor = dayPct > 100 ? 'var(--danger)' : (dayPct >= 80 ? '#f59e0b' : 'var(--success)');
+
+    const tbody = document.getElementById('vochtTableBody');
+    tbody.innerHTML = '';
+    const isAdmin = currentUserData && currentUserData.role === 'admin';
+    const vochtPerm = currentUserData && currentUserData.permissions ? currentUserData.permissions.vocht : 'none';
+    const canWrite = isAdmin || vochtPerm === 'write';
+
+    if (dayItems.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Geen vochtinname gevonden voor deze dag.</td></tr>';
+      return;
+    }
+
+    dayItems.forEach(item => {
+      const delBtn = canWrite ? `<button class="btn btn-danger" onclick="deleteVocht('${item.id}')">Verwijderen</button>` : '-';
+      tbody.innerHTML += `
+        <tr>
+          <td>${item.dateKey}</td>
+          <td>${item.time}</td>
+          <td><b>${item.drink}</b></td>
+          <td>${item.amount} ml</td>
+          <td>${delBtn}</td>
+        </tr>`;
+    });
+  }
+
+  function exportVochtExcel() {
+    if (vochtList.length === 0) { alert('Geen vochtgegevens om te exporteren.'); return; }
+    const data = vochtList.map(i => ({
+      "Datum": i.dateKey,
+      "Tijdstip": i.time,
+      "Drank": i.drink,
+      "Hoeveelheid (ml)": i.amount
+    }));
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Vochtmonitor");
+    XLSX.writeFile(wb, `Vochtmonitor_${new Date().toISOString().slice(0,10)}.xlsx`);
+  }
+
+  // --- HOME DASHBOARD OVERIGE KAARTEN ---
   function updateHomeBpSummary() {
     const badge = document.getElementById('dashBpBadge');
     const valEl = document.getElementById('dashBpValue');
