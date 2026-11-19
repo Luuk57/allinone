@@ -74,7 +74,7 @@
 
     .app-iframe { width: 100%; height: 78vh; border: 1px solid var(--border-color); border-radius: 8px; background: #fff; }
 
-    /* Rittenapp Specifieke Stijlen */
+    /* Subtabs & Kaarten */
     .sub-tabs { display: flex; gap: 8px; margin-bottom: 15px; }
     .sub-tab-btn { background: #f1f5f9; border: 1px solid var(--border-color); padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.85rem; }
     .sub-tab-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
@@ -90,7 +90,7 @@
     .stat-red { color: var(--danger); }
 
     .form-card { background: #f8fafc; border: 1px solid var(--border-color); padding: 20px; border-radius: 10px; margin-bottom: 20px; }
-    .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 15px; margin-bottom: 15px; }
+    .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px; }
     .form-group { display: flex; flex-direction: column; }
     label { font-weight: bold; margin-bottom: 6px; font-size: 0.85rem; color: #1e293b; }
     input, select, textarea { padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.95rem; background: #fff; }
@@ -174,6 +174,7 @@
     <!-- Navigatie Tabbladen -->
     <div class="nav-tabs" id="navTabsContainer">
       <button class="tab-btn active" id="tabBtnHome" onclick="switchTab('homeTab', this)">Home Dashboard</button>
+      <button class="tab-btn" id="tabBtnBp" style="display:none;" onclick="switchTab('bpTab', this)">Bloeddruk & Hartslag</button>
       <button class="tab-btn" id="tabBtnVocht" style="display:none;" onclick="switchTab('vochtTab', this)">Vochtmonitor</button>
       <button class="tab-btn" id="tabBtnRitten" style="display:none;" onclick="switchTab('rittenTab', this)">Rittenapp</button>
       <button class="tab-btn admin-tab" id="adminTabBtn" style="display:none;" onclick="switchTab('adminTab', this)">Gebruikersbeheer (Admin)</button>
@@ -185,6 +186,15 @@
       <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 15px;">Kies een module om te starten:</p>
       
       <div class="launcher-grid" id="launcherGrid">
+        <!-- Tegel Bloeddruk & Hartslag -->
+        <div class="app-tile" id="tileBp" style="display:none;" onclick="openModule('bpTab', 'tabBtnBp')">
+          <div class="app-tile-icon" style="background: linear-gradient(135deg, #dc2626, #991b1b);">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          </div>
+          <h3>Bloeddruk & Hartslag</h3>
+          <p>Metingen registreren met dialyse-kleurcodering</p>
+        </div>
+
         <!-- Tegel Vochtmonitor -->
         <div class="app-tile" id="tileVocht" style="display:none;" onclick="openModule('vochtTab', 'tabBtnVocht')">
           <div class="app-tile-icon" style="background: linear-gradient(135deg, #0284c7, #0369a1);">
@@ -218,19 +228,82 @@
       </div>
     </div>
 
-    <!-- TAB 1: VOCHTMONITOR VIA URL (IFRAME) -->
+    <!-- TAB 1: BLOEDDRUK & HARTSLAG MODULE -->
+    <div id="bpTab" class="tab-content">
+      <div class="form-card" id="bpFormCard">
+        <h3 style="margin-bottom: 15px; color: var(--primary);">Nieuwe Bloeddruk Meting Toevoegen</h3>
+        <form onsubmit="handleBpSubmit(event)">
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Bovendruk (Systolisch)</label>
+              <input type="number" id="sysInput" placeholder="bijv. 120" required>
+            </div>
+            <div class="form-group">
+              <label>Onderdruk (Diastolisch)</label>
+              <input type="number" id="diaInput" placeholder="bijv. 80" required>
+            </div>
+            <div class="form-group">
+              <label>Hartslag (bpm)</label>
+              <input type="number" id="hrInput" placeholder="bijv. 70" required>
+            </div>
+            <div class="form-group">
+              <label>Opmerking / Moment (optioneel)</label>
+              <input type="text" id="bpNoteInput" placeholder="bijv. Voor dialyse / Ochtend">
+            </div>
+          </div>
+          <button type="submit" class="btn">Meting Opslaan</button>
+        </form>
+      </div>
+
+      <div class="actions-bar">
+        <div style="display:flex; gap:10px; align-items:center;">
+          <label style="margin-bottom:0;">Periode:</label>
+          <select id="bpPeriodSelect" onchange="loadBpMeasurements()" style="padding: 8px; border-radius: 6px; border: 1px solid var(--border-color);">
+            <option value="today">Vandaag</option>
+            <option value="7days">Afgelopen 7 dagen</option>
+            <option value="30days">Afgelopen 30 dagen</option>
+            <option value="all">Alle metingen</option>
+          </select>
+        </div>
+        <div style="display: flex; gap: 10px;">
+          <button class="btn btn-excel" onclick="exportBpExcel()">Excel (.xlsx)</button>
+          <button class="btn btn-pdf" onclick="window.print()">Print / PDF</button>
+        </div>
+      </div>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Datum</th>
+              <th>Tijdstip</th>
+              <th>Bloeddruk (Sys/Dia)</th>
+              <th>Hartslag</th>
+              <th>Dialyse Status</th>
+              <th>Opmerking</th>
+              <th>Actie</th>
+            </tr>
+          </thead>
+          <tbody id="bpTableBody">
+            <tr><td colspan="7" style="text-align:center;">Geen metingen gevonden.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB 2: VOCHTMONITOR VIA URL (IFRAME) -->
     <div id="vochtTab" class="tab-content">
       <iframe src="https://luuk57.github.io/Drinken/" class="app-iframe" title="Vochtmonitor"></iframe>
     </div>
 
-    <!-- TAB 2: RITTENAPP MODULE -->
+    <!-- TAB 3: RITTENAPP MODULE -->
     <div id="rittenTab" class="tab-content">
       <div class="sub-tabs">
         <button class="sub-tab-btn active" onclick="switchSubTab('ritLogSub', this)">Rittenlog & Overzicht</button>
         <button class="sub-tab-btn" id="subTabPlanBtn" onclick="switchSubTab('ritPlanSub', this)">Ritten Inplannen</button>
       </div>
 
-      <!-- SUBTAB 2A: RITTENLOG & DASHBOARD -->
+      <!-- SUBTAB 3A: RITTENLOG & DASHBOARD -->
       <div id="ritLogSub" class="sub-content active">
         <div class="dashboard-grid">
           <div class="dash-card">
@@ -251,7 +324,6 @@
           </div>
         </div>
 
-        <!-- Formulier (alleen bij schrijfrechten) -->
         <div class="form-card" id="ritFormCard">
           <h3 id="ritFormTitle" style="margin-bottom: 15px; color: var(--primary);">Nieuwe Rit Toevoegen</h3>
           <form onsubmit="handleRitSubmit(event)">
@@ -347,7 +419,7 @@
         </div>
       </div>
 
-      <!-- SUBTAB 2B: RITTEN INPLANNEN -->
+      <!-- SUBTAB 3B: RITTEN INPLANNEN -->
       <div id="ritPlanSub" class="sub-content">
         <div class="form-card">
           <h3 style="margin-bottom: 15px; color: var(--primary);">Herhalende Ritten Inplannen</h3>
@@ -409,7 +481,7 @@
       </div>
     </div>
 
-    <!-- TAB 3: BEHEER (Admin) -->
+    <!-- TAB 4: BEHEER (Admin) -->
     <div id="adminTab" class="tab-content">
       <h3 style="margin-bottom: 15px; color: var(--primary);">Gebruikersbeheer & Module-rechten</h3>
       <div class="table-container">
@@ -419,13 +491,14 @@
               <th>E-mailadres</th>
               <th>Status</th>
               <th>Rol</th>
+              <th>Bloeddruk</th>
               <th>Vochtmonitor</th>
               <th>Rittenapp</th>
               <th>Acties</th>
             </tr>
           </thead>
           <tbody id="usersTableBody">
-            <tr><td colspan="6" style="text-align:center;">Laden...</td></tr>
+            <tr><td colspan="7" style="text-align:center;">Laden...</td></tr>
           </tbody>
         </table>
       </div>
@@ -454,7 +527,8 @@
   let currentUser = null;
   let currentUserData = null;
 
-  // Rittenapp variabelen
+  // Module lijsten
+  let bpList = [];
   let rittenList = [];
   let dropdownOptions = { Bedrijf: [], Chauffeur: [], Kenteken: [], Vanaf: [], Naar: [] };
 
@@ -497,7 +571,7 @@
             email: email,
             status: 'pending',
             role: 'user',
-            permissions: { vocht: 'none', ritten: 'none' },
+            permissions: { bloeddruk: 'none', vocht: 'none', ritten: 'none' },
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
           });
         })
@@ -524,7 +598,7 @@
           email: user.email,
           status: 'pending',
           role: 'user',
-          permissions: { vocht: 'none', ritten: 'none' },
+          permissions: { bloeddruk: 'none', vocht: 'none', ritten: 'none' },
           createdAt: firebase.firestore.FieldValue.serverTimestamp()
         }).then(() => {
           document.getElementById('pendingContainer').style.display = 'block';
@@ -539,18 +613,30 @@
 
     const isAdmin = currentUserData.role === 'admin';
     const perms = currentUserData.permissions || {};
+    const bpPerm = perms.bloeddruk || 'none';
     const vochtPerm = perms.vocht || 'none';
     const rittenPerm = perms.ritten || 'none';
 
     let visibleCount = 0;
 
-    // 1. Vochtmonitor zichtbaarheid
+    // 1. Bloeddruk & Hartslag zichtbaarheid & rechten
+    const hasBp = isAdmin || bpPerm !== 'none';
+    document.getElementById('tabBtnBp').style.display = hasBp ? 'block' : 'none';
+    document.getElementById('tileBp').style.display = hasBp ? 'flex' : 'none';
+    if (hasBp) {
+      visibleCount++;
+      const canWriteBp = isAdmin || bpPerm === 'write';
+      document.getElementById('bpFormCard').style.display = canWriteBp ? 'block' : 'none';
+      loadBpMeasurements();
+    }
+
+    // 2. Vochtmonitor zichtbaarheid
     const hasVocht = isAdmin || vochtPerm !== 'none';
     document.getElementById('tabBtnVocht').style.display = hasVocht ? 'block' : 'none';
     document.getElementById('tileVocht').style.display = hasVocht ? 'flex' : 'none';
     if (hasVocht) visibleCount++;
 
-    // 2. Rittenapp zichtbaarheid & rechten
+    // 3. Rittenapp zichtbaarheid & rechten
     const hasRitten = isAdmin || rittenPerm !== 'none';
     document.getElementById('tabBtnRitten').style.display = hasRitten ? 'block' : 'none';
     document.getElementById('tileRitten').style.display = hasRitten ? 'flex' : 'none';
@@ -562,7 +648,7 @@
       loadDropdownsAndRitten();
     }
 
-    // 3. Admin paneel zichtbaarheid
+    // 4. Admin paneel zichtbaarheid
     document.getElementById('adminTabBtn').style.display = isAdmin ? 'block' : 'none';
     document.getElementById('tileAdmin').style.display = isAdmin ? 'flex' : 'none';
     if (isAdmin) {
@@ -570,10 +656,7 @@
       loadAllUsersForAdmin();
     }
 
-    // Melding als gebruiker nergens rechten op heeft
     document.getElementById('noModulesMsg').style.display = visibleCount === 0 ? 'block' : 'none';
-
-    // Start altijd op het Home Dashboard
     switchTab('homeTab', document.getElementById('tabBtnHome'));
   }
 
@@ -595,6 +678,10 @@
     if (btn) btn.classList.add('active');
   }
 
+  function getLocalDateKey(date = new Date()) {
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+  }
+
   // --- ADMIN BEHEER ---
   function loadAllUsersForAdmin() {
     db.collection('users').get().then(snapshot => {
@@ -605,13 +692,20 @@
         let uid = doc.id;
         let statusBadge = u.status === 'active' ? `<span class="badge bg-admin">Actief</span>` : `<span class="badge bg-pending">Standby</span>`;
         let roleBadge = u.role === 'admin' ? `<span class="badge bg-admin">Admin</span>` : `<span class="badge bg-user">User</span>`;
-        let p = u.permissions || { vocht: 'none', ritten: 'none' };
+        let p = u.permissions || { bloeddruk: 'none', vocht: 'none', ritten: 'none' };
 
         tbody.innerHTML += `
           <tr>
             <td>${u.email}</td>
             <td>${statusBadge}</td>
             <td>${roleBadge}</td>
+            <td>
+              <select class="perm-select" onchange="updateUserPerm('${uid}', 'bloeddruk', this.value)">
+                <option value="none" ${p.bloeddruk==='none'?'selected':''}>Geen</option>
+                <option value="read" ${p.bloeddruk==='read'?'selected':''}>Lezen</option>
+                <option value="write" ${p.bloeddruk==='write'?'selected':''}>Schrijven</option>
+              </select>
+            </td>
             <td>
               <select class="perm-select" onchange="updateUserPerm('${uid}', 'vocht', this.value)">
                 <option value="none" ${p.vocht==='none'?'selected':''}>Geen</option>
@@ -646,11 +740,117 @@
     });
   }
 
-  // --- RITTENAPP LOGICA (PERSOONSGEBONDEN) ---
-  function getLocalDateKey(date = new Date()) {
-    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+  // --- MODULE 1: BLOEDDRUK & HARTSLAG ---
+  function handleBpSubmit(event) {
+    event.preventDefault();
+    const record = {
+      userId: currentUser.uid,
+      sys: parseInt(document.getElementById('sysInput').value),
+      dia: parseInt(document.getElementById('diaInput').value),
+      hr: parseInt(document.getElementById('hrInput').value),
+      note: document.getElementById('bpNoteInput').value.trim(),
+      dateKey: getLocalDateKey(),
+      time: new Date().toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' }),
+      timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    };
+
+    db.collection('blood_pressure_measurements').add(record).then(() => {
+      document.getElementById('sysInput').value = '';
+      document.getElementById('diaInput').value = '';
+      document.getElementById('hrInput').value = '';
+      document.getElementById('bpNoteInput').value = '';
+      loadBpMeasurements();
+    }).catch(e => alert(e.message));
   }
 
+  function loadBpMeasurements() {
+    const period = document.getElementById('bpPeriodSelect').value;
+    db.collection('blood_pressure_measurements').where('userId', '==', currentUser.uid).get().then(snapshot => {
+      bpList = [];
+      const todayStr = getLocalDateKey();
+      
+      snapshot.forEach(doc => {
+        let d = doc.data();
+        let include = true;
+        if (d.dateKey && period !== 'all') {
+          if (period === 'today' && d.dateKey !== todayStr) include = false;
+          else if (period === '7days' || period === '30days') {
+            let days = period === '7days' ? 7 : 30;
+            let past = new Date();
+            past.setDate(past.getDate() - days);
+            let pastStr = getLocalDateKey(past);
+            if (d.dateKey < pastStr || d.dateKey > todayStr) include = false;
+          }
+        }
+        if (include) bpList.push({ id: doc.id, ...d });
+      });
+
+      bpList.sort((a, b) => ((b.dateKey || '') + (b.time || '')).localeCompare((a.dateKey || '') + (a.time || '')));
+      renderBpTable();
+    });
+  }
+
+  function getBpStatus(sys, dia, hr) {
+    // Dialyse-gerichte kleurcodering voor bloeddruk en hartslag
+    if (sys >= 160 || dia >= 100 || sys < 90 || dia < 55 || hr > 110 || hr < 50) {
+      return { label: 'Afwijkend / Actie', class: 'bg-red' };
+    }
+    if ((sys >= 140 && sys < 160) || (dia >= 90 && dia < 100) || (sys >= 90 && sys < 100) || (dia >= 55 && dia < 60) || (hr >= 95 && hr <= 110) || (hr >= 50 && hr < 55)) {
+      return { label: 'Let op / Randgeval', class: 'bg-orange' };
+    }
+    return { label: 'Stabiel / Optimaal', class: 'bg-green' };
+  }
+
+  function renderBpTable() {
+    const tbody = document.getElementById('bpTableBody');
+    tbody.innerHTML = '';
+    const isAdmin = currentUserData.role === 'admin';
+    const bpPerm = currentUserData.permissions ? currentUserData.permissions.bloeddruk : 'none';
+    const canWrite = isAdmin || bpPerm === 'write';
+
+    if (bpList.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">Geen metingen gevonden voor deze periode.</td></tr>';
+      return;
+    }
+
+    bpList.forEach(item => {
+      let st = getBpStatus(item.sys, item.dia, item.hr);
+      let delBtn = canWrite ? `<button class="btn btn-danger" onclick="deleteBp('${item.id}')">Verwijderen</button>` : '-';
+      tbody.innerHTML += `
+        <tr>
+          <td>${item.dateKey || '-'}</td>
+          <td>${item.time || '-'}</td>
+          <td><b>${item.sys} / ${item.dia} mmHg</b></td>
+          <td><b>${item.hr} bpm</b></td>
+          <td><span class="badge ${st.class}">${st.label}</span></td>
+          <td>${item.note || '-'}</td>
+          <td>${delBtn}</td>
+        </tr>`;
+    });
+  }
+
+  function deleteBp(id) {
+    if (confirm("Meting verwijderen?")) db.collection('blood_pressure_measurements').doc(id).delete().then(loadBpMeasurements);
+  }
+
+  function exportBpExcel() {
+    if (bpList.length === 0) { alert("Geen metingen om te exporteren."); return; }
+    let data = bpList.map(i => ({
+      "Datum": i.dateKey,
+      "Tijd": i.time,
+      "Bovendruk (Sys)": i.sys,
+      "Onderdruk (Dia)": i.dia,
+      "Hartslag (bpm)": i.hr,
+      "Status": getBpStatus(i.sys, i.dia, i.hr).label,
+      "Opmerking": i.note || ''
+    }));
+    let ws = XLSX.utils.json_to_sheet(data);
+    let wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Bloeddruk");
+    XLSX.writeFile(wb, `Bloeddruk_${new Date().toISOString().slice(0,10)}.xlsx`);
+  }
+
+  // --- MODULE 3: RITTENAPP LOGICA ---
   function setQuickTime(inputId) {
     const now = new Date();
     const year = now.getFullYear();
@@ -755,7 +955,6 @@
         if (inc) rittenList.push({ id: doc.id, ...d });
       });
 
-      // Chronologisch van oud naar nieuw
       rittenList.sort((a,b) => (a.afspraak || '').localeCompare(b.afspraak || ''));
       renderRittenTable();
     });
