@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard & Vochtmonitor Schil</title>
+  <title>Centrale App Schil & Dashboard</title>
   
   <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='100' fill='%230056b3'/><text x='50%' y='52%' font-size='180' font-family='Arial, sans-serif' font-weight='bold' fill='white' text-anchor='middle' dominant-baseline='middle'>APP</text></svg>">
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='100' fill='%230056b3'/><text x='50%' y='52%' font-size='180' font-family='Arial, sans-serif' font-weight='bold' fill='white' text-anchor='middle' dominant-baseline='middle'>APP</text></svg>">
@@ -12,6 +12,9 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+  <!-- SheetJS voor Excel Export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
   <style>
     :root {
@@ -27,9 +30,9 @@
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
-    body { background-color: var(--bg-color); color: var(--text-color); padding: 15px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+    body { background-color: var(--bg-color); color: var(--text-color); padding: 15px; display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; }
 
-    #authContainer, #pendingContainer { width: 100%; max-width: 400px; background: var(--card-bg); padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); display: none; text-align: center; }
+    #authContainer, #pendingContainer { width: 100%; max-width: 400px; background: var(--card-bg); padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); display: none; text-align: center; margin-top: 10vh; }
     #authContainer h2, #pendingContainer h2 { color: var(--primary); margin-bottom: 20px; }
     .auth-form-group { margin-bottom: 15px; display: flex; flex-direction: column; text-align: left; }
     .auth-form-group label { font-weight: bold; margin-bottom: 5px; font-size: 0.9rem; }
@@ -42,7 +45,7 @@
     .user-info { display: flex; align-items: center; gap: 15px; font-size: 0.9rem; }
 
     .nav-tabs { display: flex; gap: 8px; margin-bottom: 20px; border-bottom: 1px solid #ddd; padding-bottom: 10px; flex-wrap: wrap; }
-    .tab-btn { background: #e2e8f0; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.9rem; transition: background 0.2s; display: none; }
+    .tab-btn { background: #e2e8f0; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.9rem; transition: background 0.2s; }
     .tab-btn.active { background: var(--primary); color: white; }
     .tab-btn.admin-tab { background: #e0e7ff; color: #3730a3; }
     .tab-btn.admin-tab.active { background: #3730a3; color: white; }
@@ -50,26 +53,81 @@
     .tab-content { display: none; }
     .tab-content.active { display: block; }
 
+    /* HOME DASHBOARD TEGELS */
+    .launcher-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; margin-top: 15px; }
+    .app-tile { background: #f8fafc; border: 2px solid var(--border-color); border-radius: 14px; padding: 25px 20px; text-align: center; cursor: pointer; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; box-shadow: 0 3px 8px rgba(0,0,0,0.04); }
+    .app-tile:hover { border-color: var(--primary); transform: translateY(-4px); box-shadow: 0 8px 18px rgba(0, 86, 179, 0.15); background: #fff; }
+    .app-tile-icon { width: 64px; height: 64px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 2rem; color: white; font-weight: bold; }
+    .app-tile h3 { font-size: 1.1rem; color: #1e293b; }
+    .app-tile p { font-size: 0.85rem; color: #64748b; }
+
+    /* Knoppen & Formulieren */
     .btn { background: var(--primary); color: white; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-size: 0.95rem; font-weight: bold; width: 100%; transition: background 0.2s; }
     .btn:hover { background: var(--primary-dark); }
+    .btn-excel { background: #1f7344; width: auto; }
+    .btn-excel:hover { background: #15572b; }
+    .btn-pdf { background: #d9534f; width: auto; }
+    .btn-pdf:hover { background: #c9302c; }
     .btn-danger { background: var(--danger); width: auto; padding: 6px 12px; font-size: 0.85rem; }
     .btn-danger:hover { background: #bd2130; }
     .btn-warning { background: var(--warning); color: #000; width: auto; padding: 6px 12px; font-size: 0.85rem; }
 
-    /* Iframe Styling voor de Standby/Online App */
-    .app-iframe { width: 100%; height: 75vh; border: 1px solid var(--border-color); border-radius: 8px; background: #fff; }
+    .app-iframe { width: 100%; height: 78vh; border: 1px solid var(--border-color); border-radius: 8px; background: #fff; }
 
+    /* Rittenapp Specifieke Stijlen */
+    .sub-tabs { display: flex; gap: 8px; margin-bottom: 15px; }
+    .sub-tab-btn { background: #f1f5f9; border: 1px solid var(--border-color); padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.85rem; }
+    .sub-tab-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+    .sub-content { display: none; }
+    .sub-content.active { display: block; }
+
+    .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 20px; }
+    .dash-card { background: #f8fafc; border: 1px solid var(--border-color); border-radius: 10px; padding: 15px; text-align: center; }
+    .dash-card h4 { font-size: 0.8rem; color: #64748b; margin-bottom: 6px; text-transform: uppercase; }
+    .dash-card .stat { font-size: 1.6rem; font-weight: bold; }
+    .stat-green { color: var(--success); }
+    .stat-orange { color: #d97706; }
+    .stat-red { color: var(--danger); }
+
+    .form-card { background: #f8fafc; border: 1px solid var(--border-color); padding: 20px; border-radius: 10px; margin-bottom: 20px; }
+    .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 15px; margin-bottom: 15px; }
+    .form-group { display: flex; flex-direction: column; }
+    label { font-weight: bold; margin-bottom: 6px; font-size: 0.85rem; color: #1e293b; }
+    input, select, textarea { padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.95rem; background: #fff; }
+    textarea { resize: vertical; height: 40px; }
+
+    .time-input-group { display: flex; gap: 6px; align-items: center; }
+    .time-input-group input { flex: 1; min-width: 0; }
+    .btn-quick-start { background: var(--success); color: white; border: none; padding: 10px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.8rem; }
+    .btn-quick-stop { background: var(--danger); color: white; border: none; padding: 10px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.8rem; }
+
+    .actions-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px; }
+
+    /* Tabellen & Badges */
     .table-container { overflow-x: auto; margin-top: 15px; }
-    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; min-width: 600px; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; min-width: 750px; }
     th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
     th { background: var(--primary); color: white; }
     tr:nth-child(even) { background: #f8fafc; }
 
-    .badge { padding: 4px 8px; border-radius: 4px; font-weight: bold; color: white; font-size: 0.75rem; }
+    .badge { padding: 4px 8px; border-radius: 4px; font-weight: bold; color: white; font-size: 0.75rem; display: inline-block; }
     .bg-admin { background-color: #3730a3; }
     .bg-user { background-color: #059669; }
     .bg-pending { background-color: #d97706; }
-    select.perm-select { padding: 4px; border-radius: 4px; border: 1px solid var(--border-color); font-size: 0.8rem; }
+    .bg-green { background-color: var(--success); }
+    .bg-orange { background-color: #f59e0b; color: #000; }
+    .bg-red { background-color: var(--danger); }
+    .bg-gray { background-color: #64748b; }
+
+    select.perm-select { padding: 5px; border-radius: 4px; border: 1px solid var(--border-color); font-size: 0.8rem; }
+
+    @media print {
+      body { background: white; padding: 0; }
+      #appContainer { box-shadow: none; padding: 0; max-width: 100%; }
+      .app-header, .nav-tabs, .sub-tabs, .form-card, .actions-bar, .btn, button { display: none !important; }
+      table { border: 1px solid #000; }
+      th, td { border: 1px solid #000; color: #000; }
+    }
   </style>
 
   <link rel="manifest" href="manifest.json">
@@ -78,7 +136,7 @@
 </head>
 <body>
 
-  <!-- INLOGSCHERM -->
+  <!-- 1. INLOGSCHERM -->
   <div id="authContainer">
     <h2 id="authTitle">Inloggen</h2>
     <div class="auth-form-group">
@@ -96,17 +154,17 @@
     <p id="authError" style="color: var(--danger); font-size: 0.85rem; text-align: center; margin-top: 10px;"></p>
   </div>
 
-  <!-- STANDBY SCHERM -->
+  <!-- 1.B STANDBY SCHERM -->
   <div id="pendingContainer">
     <h2>Account in afwachting</h2>
     <p style="margin-bottom: 20px; color: #64748b; font-size: 0.95rem;">Je account is geregistreerd, maar staat op **Standby**. De beheerder moet je account eerst goedkeuren.</p>
     <button class="btn btn-danger" onclick="logout()">Uitloggen</button>
   </div>
 
-  <!-- HOOFD APP SCHERM (SCHIL) -->
+  <!-- 2. HOOFD APP SCHERM (SCHIL) -->
   <div id="appContainer">
     <div class="app-header">
-      <h1>Dashboard & Programma Schil</h1>
+      <h1>Centraal Dashboard</h1>
       <div class="user-info">
         <span id="userEmailDisplay">Welkom</span>
         <button class="btn btn-danger" onclick="logout()">Uitloggen</button>
@@ -115,18 +173,245 @@
 
     <!-- Navigatie Tabbladen -->
     <div class="nav-tabs" id="navTabsContainer">
-      <button class="tab-btn" id="tabBtnVocht" onclick="switchTab('vochtTab', this)">Vochtmonitor App</button>
-      <button class="tab-btn admin-tab" id="adminTabBtn" onclick="switchTab('adminTab', this)">Gebruikersbeheer (Admin)</button>
+      <button class="tab-btn active" id="tabBtnHome" onclick="switchTab('homeTab', this)">Home Dashboard</button>
+      <button class="tab-btn" id="tabBtnVocht" style="display:none;" onclick="switchTab('vochtTab', this)">Vochtmonitor</button>
+      <button class="tab-btn" id="tabBtnRitten" style="display:none;" onclick="switchTab('rittenTab', this)">Rittenapp</button>
+      <button class="tab-btn admin-tab" id="adminTabBtn" style="display:none;" onclick="switchTab('adminTab', this)">Gebruikersbeheer (Admin)</button>
     </div>
 
-    <!-- VOCHTMONITOR VIA URL (IFRAME) -->
+    <!-- TAB 0: HOME DASHBOARD (PROGRAMMA STARTPAGINA) -->
+    <div id="homeTab" class="tab-content active">
+      <h2 style="color: #1e293b; font-size: 1.2rem; margin-bottom: 5px;">Mijn Programma's</h2>
+      <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 15px;">Kies een module om te starten:</p>
+      
+      <div class="launcher-grid" id="launcherGrid">
+        <!-- Tegel Vochtmonitor -->
+        <div class="app-tile" id="tileVocht" style="display:none;" onclick="openModule('vochtTab', 'tabBtnVocht')">
+          <div class="app-tile-icon" style="background: linear-gradient(135deg, #0284c7, #0369a1);">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+          </div>
+          <h3>Vochtmonitor</h3>
+          <p>Dagelijkse vochtinname & limiet bijhouden</p>
+        </div>
+
+        <!-- Tegel Rittenapp -->
+        <div class="app-tile" id="tileRitten" style="display:none;" onclick="openModule('rittenTab', 'tabBtnRitten')">
+          <div class="app-tile-icon" style="background: linear-gradient(135deg, #059669, #047857);">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+          </div>
+          <h3>Rittenapp</h3>
+          <p>Rittenlog, planning & stiptheid overzicht</p>
+        </div>
+
+        <!-- Tegel Gebruikersbeheer (Alleen Admin) -->
+        <div class="app-tile" id="tileAdmin" style="display:none;" onclick="openModule('adminTab', 'adminTabBtn')">
+          <div class="app-tile-icon" style="background: linear-gradient(135deg, #4338ca, #312e81);">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+          <h3>Gebruikersbeheer</h3>
+          <p>Accounts goedkeuren & module-rechten</p>
+        </div>
+      </div>
+
+      <div id="noModulesMsg" style="display:none; background:#fff3cd; color:#856404; padding:15px; border-radius:8px; margin-top:20px;">
+        Je hebt momenteel nog geen toegang tot modules. Vraag de beheerder om rechten toe te wijzen.
+      </div>
+    </div>
+
+    <!-- TAB 1: VOCHTMONITOR VIA URL (IFRAME) -->
     <div id="vochtTab" class="tab-content">
       <iframe src="https://luuk57.github.io/Drinken/" class="app-iframe" title="Vochtmonitor"></iframe>
     </div>
 
-    <!-- BEHEER TAB (Admin) -->
+    <!-- TAB 2: RITTENAPP MODULE -->
+    <div id="rittenTab" class="tab-content">
+      <div class="sub-tabs">
+        <button class="sub-tab-btn active" onclick="switchSubTab('ritLogSub', this)">Rittenlog & Overzicht</button>
+        <button class="sub-tab-btn" id="subTabPlanBtn" onclick="switchSubTab('ritPlanSub', this)">Ritten Inplannen</button>
+      </div>
+
+      <!-- SUBTAB 2A: RITTENLOG & DASHBOARD -->
+      <div id="ritLogSub" class="sub-content active">
+        <div class="dashboard-grid">
+          <div class="dash-card">
+            <h4>Te Vroeg</h4>
+            <div class="stat stat-orange" id="statEarly">0%</div>
+          </div>
+          <div class="dash-card">
+            <h4>Op Tijd</h4>
+            <div class="stat stat-green" id="statOnTime">0%</div>
+          </div>
+          <div class="dash-card">
+            <h4>Te Laat</h4>
+            <div class="stat stat-red" id="statLate">0%</div>
+          </div>
+          <div class="dash-card">
+            <h4>Totaal Ritten</h4>
+            <div class="stat" id="statTotal" style="color: var(--primary);">0</div>
+          </div>
+        </div>
+
+        <!-- Formulier (alleen bij schrijfrechten) -->
+        <div class="form-card" id="ritFormCard">
+          <h3 id="ritFormTitle" style="margin-bottom: 15px; color: var(--primary);">Nieuwe Rit Toevoegen</h3>
+          <form onsubmit="handleRitSubmit(event)">
+            <input type="hidden" id="editRitId" value="">
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Bedrijf</label>
+                <select id="bedrijfSelect" required onchange="checkNewOption(this, 'Bedrijf')"><option value="">-- Kies bedrijf --</option></select>
+              </div>
+              <div class="form-group">
+                <label>Chauffeur</label>
+                <select id="chauffeurSelect" required onchange="checkNewOption(this, 'Chauffeur')"><option value="">-- Kies chauffeur --</option></select>
+              </div>
+              <div class="form-group">
+                <label>Kenteken</label>
+                <select id="kentekenSelect" required onchange="checkNewOption(this, 'Kenteken')"><option value="">-- Kies kenteken --</option></select>
+              </div>
+              <div class="form-group">
+                <label>Vanaf (Vertrek)</label>
+                <select id="vanafSelect" required onchange="checkNewOption(this, 'Vanaf')"><option value="">-- Kies vertrekpunt --</option></select>
+              </div>
+              <div class="form-group">
+                <label>Naar (Aankomst)</label>
+                <select id="naarSelect" required onchange="checkNewOption(this, 'Naar')"><option value="">-- Kies bestemming --</option></select>
+              </div>
+              <div class="form-group">
+                <label>Afspraak Datum & Tijd</label>
+                <input type="datetime-local" id="afspraakInput" required>
+              </div>
+              <div class="form-group">
+                <label>Start Datum & Tijd</label>
+                <div class="time-input-group">
+                  <input type="datetime-local" id="startInput">
+                  <button type="button" class="btn-quick-start" onclick="setQuickTime('startInput')">Start</button>
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Stop Datum & Tijd (Aankomst)</label>
+                <div class="time-input-group">
+                  <input type="datetime-local" id="stopInput">
+                  <button type="button" class="btn-quick-stop" onclick="setQuickTime('stopInput')">Stop</button>
+                </div>
+              </div>
+            </div>
+            <div class="form-group" style="margin-bottom: 15px;">
+              <label>Opmerkingen</label>
+              <textarea id="opmerkingenInput" placeholder="Eventuele bijzonderheden..."></textarea>
+            </div>
+            <div style="display: flex; gap: 10px;">
+              <button type="submit" class="btn" id="submitRitBtn">Rit Opslaan</button>
+              <button type="button" class="btn" style="background: #6c757d; display: none;" id="cancelEditBtn" onclick="resetRitForm()">Annuleren</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="actions-bar">
+          <div style="display:flex; gap:10px; align-items:center;">
+            <label style="margin-bottom:0;">Periode:</label>
+            <select id="ritPeriodSelect" onchange="loadRitten()" style="padding: 8px; border-radius: 6px; border: 1px solid var(--border-color);">
+              <option value="today">Vandaag</option>
+              <option value="this_week">Deze week</option>
+              <option value="next_week">Komende week</option>
+              <option value="this_month">Deze maand</option>
+              <option value="all">Alle ritten</option>
+            </select>
+          </div>
+          <div style="display: flex; gap: 10px;">
+            <button class="btn btn-excel" onclick="exportRitExcel()">Excel (.xlsx)</button>
+            <button class="btn btn-pdf" onclick="window.print()">Print / PDF</button>
+          </div>
+        </div>
+
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Bedrijf</th>
+                <th>Chauffeur</th>
+                <th>Kenteken</th>
+                <th>Vanaf &rarr; Naar</th>
+                <th>Afspraak</th>
+                <th>Start</th>
+                <th>Stop</th>
+                <th>Prestatie</th>
+                <th>Opmerkingen</th>
+                <th>Acties</th>
+              </tr>
+            </thead>
+            <tbody id="rittenTableBody">
+              <tr><td colspan="10" style="text-align:center;">Geen ritten gevonden.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- SUBTAB 2B: RITTEN INPLANNEN -->
+      <div id="ritPlanSub" class="sub-content">
+        <div class="form-card">
+          <h3 style="margin-bottom: 15px; color: var(--primary);">Herhalende Ritten Inplannen</h3>
+          <form onsubmit="handlePlanSubmit(event)">
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Bedrijf</label>
+                <select id="planBedrijfSelect" required onchange="checkNewOption(this, 'Bedrijf')"><option value="">-- Kies bedrijf --</option></select>
+              </div>
+              <div class="form-group">
+                <label>Chauffeur (optioneel)</label>
+                <select id="planChauffeurSelect" onchange="checkNewOption(this, 'Chauffeur')"><option value="">-- Geen --</option></select>
+              </div>
+              <div class="form-group">
+                <label>Kenteken (optioneel)</label>
+                <select id="planKentekenSelect" onchange="checkNewOption(this, 'Kenteken')"><option value="">-- Geen --</option></select>
+              </div>
+              <div class="form-group">
+                <label>Vanaf</label>
+                <select id="planVanafSelect" required onchange="checkNewOption(this, 'Vanaf')"><option value="">-- Kies vertrekpunt --</option></select>
+              </div>
+              <div class="form-group">
+                <label>Naar</label>
+                <select id="planNaarSelect" required onchange="checkNewOption(this, 'Naar')"><option value="">-- Kies bestemming --</option></select>
+              </div>
+              <div class="form-group">
+                <label>Tijd Afspraak (HH:MM)</label>
+                <input type="time" id="planTijdAfspraak" required>
+              </div>
+              <div class="form-group">
+                <label>Frequentie / Herhaling</label>
+                <select id="planFrequentie" required>
+                  <option value="single">Bepaalde datum (eenmalig)</option>
+                  <option value="daily">Elke dag</option>
+                  <option value="alternate">Om de dag</option>
+                  <option value="mwf">ma - wo - vrij</option>
+                  <option value="tts">di - do - za</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Startdatum</label>
+                <input type="date" id="planStartDatum" required>
+              </div>
+              <div class="form-group">
+                <label>Eindpunt</label>
+                <select id="planEindType" onchange="toggleEindType(this.value)" required>
+                  <option value="date">Tot specifieke einddatum</option>
+                  <option value="month">Voor de geldende maand</option>
+                </select>
+              </div>
+              <div class="form-group" id="planEindDatumGroup">
+                <label>Einddatum</label>
+                <input type="date" id="planEindDatum">
+              </div>
+            </div>
+            <button type="submit" class="btn">Rittenreeks Inplannen</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: BEHEER (Admin) -->
     <div id="adminTab" class="tab-content">
-      <h3 style="margin-bottom: 15px; color: var(--primary);">Gebruikersbeheer & Rechten</h3>
+      <h3 style="margin-bottom: 15px; color: var(--primary);">Gebruikersbeheer & Module-rechten</h3>
       <div class="table-container">
         <table>
           <thead>
@@ -134,12 +419,13 @@
               <th>E-mailadres</th>
               <th>Status</th>
               <th>Rol</th>
-              <th>Vochtmonitor Recht</th>
+              <th>Vochtmonitor</th>
+              <th>Rittenapp</th>
               <th>Acties</th>
             </tr>
           </thead>
           <tbody id="usersTableBody">
-            <tr><td colspan="5" style="text-align:center;">Laden...</td></tr>
+            <tr><td colspan="6" style="text-align:center;">Laden...</td></tr>
           </tbody>
         </table>
       </div>
@@ -167,6 +453,10 @@
   let isRegisterMode = false;
   let currentUser = null;
   let currentUserData = null;
+
+  // Rittenapp variabelen
+  let rittenList = [];
+  let dropdownOptions = { Bedrijf: [], Chauffeur: [], Kenteken: [], Vanaf: [], Naar: [] };
 
   auth.onAuthStateChanged(user => {
     if (user) {
@@ -207,7 +497,7 @@
             email: email,
             status: 'pending',
             role: 'user',
-            permissions: { vocht: 'write' },
+            permissions: { vocht: 'none', ritten: 'none' },
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
           });
         })
@@ -234,7 +524,7 @@
           email: user.email,
           status: 'pending',
           role: 'user',
-          permissions: { vocht: 'write' },
+          permissions: { vocht: 'none', ritten: 'none' },
           createdAt: firebase.firestore.FieldValue.serverTimestamp()
         }).then(() => {
           document.getElementById('pendingContainer').style.display = 'block';
@@ -248,28 +538,64 @@
     document.getElementById('userEmailDisplay').innerText = email;
 
     const isAdmin = currentUserData.role === 'admin';
-    const vochtPerm = currentUserData.permissions ? currentUserData.permissions.vocht : 'none';
+    const perms = currentUserData.permissions || {};
+    const vochtPerm = perms.vocht || 'none';
+    const rittenPerm = perms.ritten || 'none';
 
-    const tabVocht = document.getElementById('tabBtnVocht');
-    if (isAdmin || vochtPerm !== 'none') {
-      tabVocht.style.display = 'block';
-      switchTab('vochtTab', tabVocht);
-    } else {
-      tabVocht.style.display = 'none';
+    let visibleCount = 0;
+
+    // 1. Vochtmonitor zichtbaarheid
+    const hasVocht = isAdmin || vochtPerm !== 'none';
+    document.getElementById('tabBtnVocht').style.display = hasVocht ? 'block' : 'none';
+    document.getElementById('tileVocht').style.display = hasVocht ? 'flex' : 'none';
+    if (hasVocht) visibleCount++;
+
+    // 2. Rittenapp zichtbaarheid & rechten
+    const hasRitten = isAdmin || rittenPerm !== 'none';
+    document.getElementById('tabBtnRitten').style.display = hasRitten ? 'block' : 'none';
+    document.getElementById('tileRitten').style.display = hasRitten ? 'flex' : 'none';
+    if (hasRitten) {
+      visibleCount++;
+      const canWriteRitten = isAdmin || rittenPerm === 'write';
+      document.getElementById('ritFormCard').style.display = canWriteRitten ? 'block' : 'none';
+      document.getElementById('subTabPlanBtn').style.display = canWriteRitten ? 'block' : 'none';
+      loadDropdownsAndRitten();
     }
 
-    const adminTab = document.getElementById('adminTabBtn');
+    // 3. Admin paneel zichtbaarheid
+    document.getElementById('adminTabBtn').style.display = isAdmin ? 'block' : 'none';
+    document.getElementById('tileAdmin').style.display = isAdmin ? 'flex' : 'none';
     if (isAdmin) {
-      adminTab.style.display = 'block';
+      visibleCount++;
       loadAllUsersForAdmin();
-      if (tabVocht.style.display === 'none') {
-        switchTab('adminTab', adminTab);
-      }
-    } else {
-      adminTab.style.display = 'none';
     }
+
+    // Melding als gebruiker nergens rechten op heeft
+    document.getElementById('noModulesMsg').style.display = visibleCount === 0 ? 'block' : 'none';
+
+    // Start altijd op het Home Dashboard
+    switchTab('homeTab', document.getElementById('tabBtnHome'));
   }
 
+  function openModule(tabId, btnId) {
+    switchTab(tabId, document.getElementById(btnId));
+  }
+
+  function switchTab(tabId, btn) {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+    document.getElementById(tabId).classList.add('active');
+    if (btn) btn.classList.add('active');
+  }
+
+  function switchSubTab(subId, btn) {
+    document.querySelectorAll('.sub-content').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.sub-tab-btn').forEach(el => el.classList.remove('active'));
+    document.getElementById(subId).classList.add('active');
+    if (btn) btn.classList.add('active');
+  }
+
+  // --- ADMIN BEHEER ---
   function loadAllUsersForAdmin() {
     db.collection('users').get().then(snapshot => {
       const tbody = document.getElementById('usersTableBody');
@@ -279,7 +605,7 @@
         let uid = doc.id;
         let statusBadge = u.status === 'active' ? `<span class="badge bg-admin">Actief</span>` : `<span class="badge bg-pending">Standby</span>`;
         let roleBadge = u.role === 'admin' ? `<span class="badge bg-admin">Admin</span>` : `<span class="badge bg-user">User</span>`;
-        let p = u.permissions || { vocht: 'none' };
+        let p = u.permissions || { vocht: 'none', ritten: 'none' };
 
         tbody.innerHTML += `
           <tr>
@@ -287,10 +613,17 @@
             <td>${statusBadge}</td>
             <td>${roleBadge}</td>
             <td>
-              <select class="perm-select" onchange="updateUserPerm('${uid}', this.value)">
+              <select class="perm-select" onchange="updateUserPerm('${uid}', 'vocht', this.value)">
                 <option value="none" ${p.vocht==='none'?'selected':''}>Geen</option>
                 <option value="read" ${p.vocht==='read'?'selected':''}>Lezen</option>
                 <option value="write" ${p.vocht==='write'?'selected':''}>Schrijven</option>
+              </select>
+            </td>
+            <td>
+              <select class="perm-select" onchange="updateUserPerm('${uid}', 'ritten', this.value)">
+                <option value="none" ${p.ritten==='none'?'selected':''}>Geen</option>
+                <option value="read" ${p.ritten==='read'?'selected':''}>Lezen</option>
+                <option value="write" ${p.ritten==='write'?'selected':''}>Schrijven</option>
               </select>
             </td>
             <td>
@@ -305,19 +638,291 @@
     db.collection('users').doc(uid).update({ status: status }).then(loadAllUsersForAdmin);
   }
 
-  function updateUserPerm(uid, val) {
+  function updateUserPerm(uid, moduleName, val) {
     db.collection('users').doc(uid).get().then(doc => {
       let p = doc.data().permissions || {};
-      p.vocht = val;
+      p[moduleName] = val;
       db.collection('users').doc(uid).update({ permissions: p });
     });
   }
 
-  function switchTab(tabId, btn) {
-    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-    document.getElementById(tabId).classList.add('active');
-    btn.classList.add('active');
+  // --- RITTENAPP LOGICA (PERSOONSGEBONDEN) ---
+  function getLocalDateKey(date = new Date()) {
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+  }
+
+  function setQuickTime(inputId) {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    document.getElementById(inputId).value = `${year}-${month}-${day}T${hours}:${minutes}`;
+  }
+
+  function loadDropdownsAndRitten() {
+    db.collection('ritten_settings').doc(currentUser.uid).get().then(doc => {
+      if (doc.exists) {
+        dropdownOptions = doc.data();
+      }
+      updateAllDropdowns();
+      loadRitten();
+    }).catch(() => loadRitten());
+  }
+
+  function updateAllDropdowns() {
+    ['bedrijfSelect', 'planBedrijfSelect'].forEach(id => populateSelect(id, dropdownOptions.Bedrijf, 'Nieuw bedrijf toevoegen...'));
+    ['chauffeurSelect', 'planChauffeurSelect'].forEach(id => populateSelect(id, dropdownOptions.Chauffeur, 'Nieuwe chauffeur toevoegen...'));
+    ['kentekenSelect', 'planKentekenSelect'].forEach(id => populateSelect(id, dropdownOptions.Kenteken, 'Nieuw kenteken toevoegen...'));
+    ['vanafSelect', 'planVanafSelect'].forEach(id => populateSelect(id, dropdownOptions.Vanaf, 'Nieuw vertrekpunt toevoegen...'));
+    ['naarSelect', 'planNaarSelect'].forEach(id => populateSelect(id, dropdownOptions.Naar, 'Nieuwe bestemming toevoegen...'));
+  }
+
+  function populateSelect(selectId, items, promptText) {
+    const select = document.getElementById(selectId);
+    if (!select) return;
+    const val = select.value;
+    select.innerHTML = `<option value="">-- Selecteer --</option>`;
+    if (items) items.sort().forEach(i => select.innerHTML += `<option value="${i}">${i}</option>`);
+    select.innerHTML += `<option value="ADD_NEW">+ ${promptText}</option>`;
+    if (val) select.value = val;
+  }
+
+  function checkNewOption(selectElement, category) {
+    if (selectElement.value === "ADD_NEW") {
+      let val = prompt(`Voer waarde in voor ${category}:`);
+      if (val && val.trim()) {
+        let clean = val.trim();
+        if (category === 'Kenteken') clean = formatDutchLicensePlate(clean);
+        if (!dropdownOptions[category]) dropdownOptions[category] = [];
+        if (!dropdownOptions[category].includes(clean)) {
+          dropdownOptions[category].push(clean);
+          db.collection('ritten_settings').doc(currentUser.uid).set(dropdownOptions);
+        }
+        updateAllDropdowns();
+        selectElement.value = clean;
+      } else {
+        selectElement.value = "";
+      }
+    }
+  }
+
+  function formatDutchLicensePlate(plate) {
+    let clean = plate.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    if (clean.length === 6) {
+      if (/^[A-Z]{2}\d{2}[A-Z]{2}$/.test(clean)) return `${clean.substr(0,2)}-${clean.substr(2,2)}-${clean.substr(4,2)}`;
+      if (/^\d{2}[A-Z]{2}\d{2}$/.test(clean)) return `${clean.substr(0,2)}-${clean.substr(2,2)}-${clean.substr(4,2)}`;
+      if (/^[A-Z]{2}\d{2}\d{2}$/.test(clean)) return `${clean.substr(0,2)}-${clean.substr(2,2)}-${clean.substr(4,2)}`;
+      if (/^\d{2}\d{2}[A-Z]{2}$/.test(clean)) return `${clean.substr(0,2)}-${clean.substr(2,2)}-${clean.substr(4,2)}`;
+      if (/^\d{2}[A-Z]{3}\d{1}$/.test(clean)) return `${clean.substr(0,2)}-${clean.substr(2,3)}-${clean.substr(5,1)}`;
+      if (/^\d{1}[A-Z]{3}\d{2}$/.test(clean)) return `${clean.substr(0,1)}-${clean.substr(1,3)}-${clean.substr(4,2)}`;
+      if (/^[A-Z]{2}\d{3}[A-Z]{1}$/.test(clean)) return `${clean.substr(0,2)}-${clean.substr(2,3)}-${clean.substr(5,1)}`;
+      if (/^[A-Z]{1}\d{3}[A-Z]{2}$/.test(clean)) return `${clean.substr(0,1)}-${clean.substr(1,3)}-${clean.substr(4,2)}`;
+      if (/^[A-Z]{3}\d{2}[A-Z]{1}$/.test(clean)) return `${clean.substr(0,3)}-${clean.substr(3,2)}-${clean.substr(5,1)}`;
+      if (/^[A-Z]{2}\d{3}[A-Z]{2}$/.test(clean)) return `${clean.substr(0,2)}-${clean.substr(2,3)}-${clean.substr(5,2)}`;
+    }
+    return clean;
+  }
+
+  function loadRitten() {
+    const period = document.getElementById('ritPeriodSelect').value;
+    db.collection('ritten_log').where('userId', '==', currentUser.uid).get().then(snapshot => {
+      rittenList = [];
+      const now = new Date();
+      let todayStr = getLocalDateKey(now);
+
+      function isRange(d, s, e) { return d >= s && d <= e; }
+      function getWeek(d, off=0) {
+        let date = new Date(d), day = date.getDay();
+        let diff = date.getDate() - day + (day === 0 ? -6 : 1) + (off * 7);
+        let mon = new Date(date.setDate(diff)), sun = new Date(new Date(mon).setDate(mon.getDate() + 6));
+        return { start: getLocalDateKey(mon), end: getLocalDateKey(sun) };
+      }
+      let thisWeek = getWeek(now, 0), nextWeek = getWeek(now, 1), thisMonth = todayStr.substring(0,7);
+
+      snapshot.forEach(doc => {
+        let d = doc.data();
+        let inc = true;
+        let cDate = d.afspraak ? d.afspraak.split('T')[0] : (d.start ? d.start.split('T')[0] : '');
+
+        if (cDate && period !== 'all') {
+          if (period === 'today' && cDate !== todayStr) inc = false;
+          if (period === 'this_week' && !isRange(cDate, thisWeek.start, thisWeek.end)) inc = false;
+          if (period === 'next_week' && !isRange(cDate, nextWeek.start, nextWeek.end)) inc = false;
+          if (period === 'this_month' && !cDate.startsWith(thisMonth)) inc = false;
+        }
+        if (inc) rittenList.push({ id: doc.id, ...d });
+      });
+
+      // Chronologisch van oud naar nieuw
+      rittenList.sort((a,b) => (a.afspraak || '').localeCompare(b.afspraak || ''));
+      renderRittenTable();
+    });
+  }
+
+  function handleRitSubmit(event) {
+    event.preventDefault();
+    let editId = document.getElementById('editRitId').value;
+    let data = {
+      userId: currentUser.uid,
+      bedrijf: document.getElementById('bedrijfSelect').value,
+      chauffeur: document.getElementById('chauffeurSelect').value || '-',
+      kenteken: document.getElementById('kentekenSelect').value || '-',
+      vanaf: document.getElementById('vanafSelect').value,
+      naar: document.getElementById('naarSelect').value,
+      afspraak: document.getElementById('afspraakInput').value,
+      start: document.getElementById('startInput').value || '',
+      stop: document.getElementById('stopInput').value || '',
+      opmerkingen: document.getElementById('opmerkingenInput').value,
+      timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    };
+
+    let promise = editId ? db.collection('ritten_log').doc(editId).update(data) : db.collection('ritten_log').add(data);
+    promise.then(() => { resetRitForm(); loadRitten(); });
+  }
+
+  function editRit(id) {
+    let r = rittenList.find(i => i.id === id);
+    if (!r) return;
+    document.getElementById('editRitId').value = r.id;
+    document.getElementById('bedrijfSelect').value = r.bedrijf;
+    document.getElementById('chauffeurSelect').value = r.chauffeur === '-' ? '' : r.chauffeur;
+    document.getElementById('kentekenSelect').value = r.kenteken === '-' ? '' : r.kenteken;
+    document.getElementById('vanafSelect').value = r.vanaf;
+    document.getElementById('naarSelect').value = r.naar;
+    document.getElementById('afspraakInput').value = r.afspraak || '';
+    document.getElementById('startInput').value = r.start || '';
+    document.getElementById('stopInput').value = r.stop || '';
+    document.getElementById('opmerkingenInput').value = r.opmerkingen || '';
+    document.getElementById('ritFormTitle').innerText = 'Rit Bewerken';
+    document.getElementById('submitRitBtn').innerText = 'Bijwerken Opslaan';
+    document.getElementById('cancelEditBtn').style.display = 'block';
+    window.scrollTo({top:0, behavior:'smooth'});
+  }
+
+  function resetRitForm() {
+    document.querySelector('#ritLogSub form').reset();
+    document.getElementById('editRitId').value = '';
+    document.getElementById('ritFormTitle').innerText = 'Nieuwe Rit Toevoegen';
+    document.getElementById('submitRitBtn').innerText = 'Rit Opslaan';
+    document.getElementById('cancelEditBtn').style.display = 'none';
+  }
+
+  function deleteRit(id) { if (confirm("Rit verwijderen?")) db.collection('ritten_log').doc(id).delete().then(loadRitten); }
+
+  function getPerformance(stopTime, afspraakTime) {
+    if (!stopTime) return { label: 'Nog niet verreden', class: 'bg-gray', type: 'pending' };
+    let diff = (new Date(stopTime) - new Date(afspraakTime)) / (1000 * 60);
+    if (diff < -5) return { label: 'Te Vroeg', class: 'bg-orange', type: 'early' };
+    if (diff > 5) return { label: 'Te Laat', class: 'bg-red', type: 'late' };
+    return { label: 'Op Tijd', class: 'bg-green', type: 'ontime' };
+  }
+
+  function renderRittenTable() {
+    const tbody = document.getElementById('rittenTableBody');
+    tbody.innerHTML = '';
+    
+    const isAdmin = currentUserData.role === 'admin';
+    const rittenPerm = currentUserData.permissions ? currentUserData.permissions.ritten : 'none';
+    const canWrite = isAdmin || rittenPerm === 'write';
+
+    if (rittenList.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;">Geen ritten gevonden.</td></tr>';
+      document.getElementById('statEarly').innerText = '0%';
+      document.getElementById('statOnTime').innerText = '0%';
+      document.getElementById('statLate').innerText = '0%';
+      document.getElementById('statTotal').innerText = '0';
+      return;
+    }
+
+    let e=0, o=0, l=0, verreden=0;
+    rittenList.forEach(item => {
+      let st = getPerformance(item.stop, item.afspraak);
+      if (st.type === 'early') { e++; verreden++; }
+      if (st.type === 'ontime') { o++; verreden++; }
+      if (st.type === 'late') { l++; verreden++; }
+
+      let actionBtns = canWrite 
+        ? `<div style="display:flex; gap:5px;"><button class="btn btn-warning" onclick="editRit('${item.id}')">Bewerken</button><button class="btn btn-danger" onclick="deleteRit('${item.id}')">Verwijderen</button></div>`
+        : '-';
+
+      tbody.innerHTML += `
+        <tr>
+          <td><b>${item.bedrijf}</b></td>
+          <td>${item.chauffeur}</td>
+          <td>${item.kenteken}</td>
+          <td>${item.vanaf} &rarr; ${item.naar}</td>
+          <td>${item.afspraak ? item.afspraak.replace('T', ' ') : '-'}</td>
+          <td>${item.start ? item.start.replace('T', ' ') : '-'}</td>
+          <td>${item.stop ? item.stop.replace('T', ' ') : '-'}</td>
+          <td><span class="badge ${st.class}">${st.label}</span></td>
+          <td>${item.opmerkingen || '-'}</td>
+          <td>${actionBtns}</td>
+        </tr>`;
+    });
+
+    let base = verreden > 0 ? verreden : 1;
+    document.getElementById('statEarly').innerText = `${Math.round((e/base)*100)}%`;
+    document.getElementById('statOnTime').innerText = `${Math.round((o/base)*100)}%`;
+    document.getElementById('statLate').innerText = `${Math.round((l/base)*100)}%`;
+    document.getElementById('statTotal').innerText = rittenList.length;
+  }
+
+  function toggleEindType(val) { document.getElementById('planEindDatumGroup').style.display = val === 'date' ? 'flex' : 'none'; }
+
+  function handlePlanSubmit(event) {
+    event.preventDefault();
+    let bedrijf = document.getElementById('planBedrijfSelect').value;
+    let chauffeur = document.getElementById('planChauffeurSelect').value || '-';
+    let kenteken = document.getElementById('planKentekenSelect').value || '-';
+    let vanaf = document.getElementById('planVanafSelect').value;
+    let naar = document.getElementById('planNaarSelect').value;
+    let tijd = document.getElementById('planTijdAfspraak').value;
+    let freq = document.getElementById('planFrequentie').value;
+    let startStr = document.getElementById('planStartDatum').value;
+    let eindType = document.getElementById('planEindType').value;
+
+    let curr = new Date(startStr);
+    let end = eindType === 'date' ? new Date(document.getElementById('planEindDatum').value) : new Date(curr.getFullYear(), curr.getMonth()+1, 0);
+
+    let batch = db.batch();
+    let count = 0;
+    while (curr <= end) {
+      let day = curr.getDay();
+      let match = (freq === 'single' || freq === 'daily') ||
+                  (freq === 'alternate' && Math.floor((curr - new Date(startStr))/(86400000)) % 2 === 0) ||
+                  (freq === 'mwf' && [1,3,5].includes(day)) ||
+                  (freq === 'tts' && [2,4,6].includes(day));
+
+      if (match) {
+        let ref = db.collection('ritten_log').doc();
+        batch.set(ref, {
+          userId: currentUser.uid,
+          bedrijf, chauffeur, kenteken, vanaf, naar,
+          afspraak: `${getLocalDateKey(curr)}T${tijd}`,
+          start: '', stop: '', opmerkingen: 'Ingeplande rit',
+          timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        count++;
+      }
+      if (freq === 'single') break;
+      curr.setDate(curr.getDate() + 1);
+    }
+
+    batch.commit().then(() => {
+      alert(`${count} ritten ingepland!`);
+      loadRitten();
+      switchSubTab('ritLogSub', document.querySelector('.sub-tabs button'));
+    });
+  }
+
+  function exportRitExcel() {
+    let data = rittenList.map(i => ({ "Bedrijf": i.bedrijf, "Chauffeur": i.chauffeur, "Kenteken": i.kenteken, "Vanaf": i.vanaf, "Naar": i.naar, "Afspraak": i.afspraak, "Start": i.start, "Stop": i.stop, "Prestatie": getPerformance(i.stop, i.afspraak).label }));
+    let ws = XLSX.utils.json_to_sheet(data);
+    let wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Ritten");
+    XLSX.writeFile(wb, `Ritten_${new Date().toISOString().slice(0,10)}.xlsx`);
   }
 </script>
 
