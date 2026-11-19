@@ -75,22 +75,46 @@
     .btn-excel:hover { background: #15572b; }
     .btn-pdf { background: #d9534f; width: auto; }
     .btn-pdf:hover { background: #c9302c; }
+    .btn-secondary { background: #6c757d; width: auto; }
+    .btn-secondary:hover { background: #5a6268; }
     .btn-danger { background: var(--danger); width: auto; padding: 6px 12px; font-size: 0.85rem; }
     .btn-danger:hover { background: #bd2130; }
     .btn-warning { background: var(--warning); color: #000; width: auto; padding: 6px 12px; font-size: 0.85rem; }
 
-    /* VOCHTMONITOR VOORTGANG & SNELKEUZE */
-    .vocht-progress-card { background: #f8fafc; border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; margin-bottom: 20px; }
-    .vocht-progress-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 10px; }
-    .progress-track { width: 100%; height: 24px; background: #e2e8f0; border-radius: 999px; overflow: hidden; }
-    .progress-fill { height: 100%; width: 0%; background: var(--success); transition: width 0.3s ease, background-color 0.3s ease; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.8rem; font-weight: bold; }
-    .quick-drinks-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(135px, 1fr)); gap: 10px; margin-bottom: 15px; }
-    .drink-quick-btn { background: #ffffff; border: 2px solid #bae6fd; border-radius: 10px; padding: 12px 10px; cursor: pointer; text-align: center; transition: all 0.15s; font-weight: bold; color: #0369a1; display: flex; flex-direction: column; gap: 4px; }
-    .drink-quick-btn:hover { background: #e0f2fe; border-color: #0284c7; transform: translateY(-2px); }
-    .drink-quick-btn span { font-size: 0.8rem; color: #475569; font-weight: normal; }
+    /* VOORTGANGSBALK 1000ML */
+    .progress-box { background: #e9ecef; border-radius: 8px; padding: 15px; margin-bottom: 20px; box-shadow: inset 0 1px 3px rgba(0,0,0,0.1); }
+    .progress-info { display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 8px; font-size: 1rem; }
+    .progress-bar-container { width: 100%; background: #cbd5e1; height: 20px; border-radius: 10px; overflow: hidden; }
+    .progress-bar { height: 100%; width: 0%; background: var(--success); transition: width 0.3s, background 0.3s; }
+
+    /* POS TEGELS GRID */
+    .pos-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; margin-bottom: 20px; }
+    .pos-tile { background: #ffffff; border: 2px solid var(--border-color); border-radius: 10px; padding: 10px; text-align: center; cursor: pointer; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; justify-content: space-between; height: 140px; box-shadow: 0 2px 5px rgba(0,0,0,0.04); }
+    .pos-tile:hover { border-color: var(--primary); transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,86,179,0.15); }
+    .pos-tile img { width: 65px; height: 65px; object-fit: cover; border-radius: 8px; margin-bottom: 6px; border: 1px solid #e2e8f0; }
+    .pos-tile span { font-size: 0.85rem; font-weight: bold; color: #1e293b; line-height: 1.1; }
+
+    /* MODAL / POP-UP VOOR HOEVEELHEID KIEZEN */
+    .modal-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 1000; padding: 15px; }
+    .modal { background: white; padding: 25px; border-radius: 12px; width: 100%; max-width: 400px; box-shadow: 0 5px 20px rgba(0,0,0,0.2); text-align: center; }
+    .modal h3 { margin-bottom: 15px; color: var(--primary); }
+    .amount-buttons { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 15px; }
+    .amount-btn { background: #f1f5f9; border: 1px solid var(--border-color); padding: 12px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 1rem; transition: background 0.2s; }
+    .amount-btn:hover { background: var(--primary); color: white; border-color: var(--primary); }
+    .custom-amount-box { display: flex; gap: 8px; margin-bottom: 15px; }
+    .custom-amount-box input { flex: 1; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 1rem; }
+
+    .drink-preview { width: 50px; height: 50px; object-fit: cover; border-radius: 6px; border: 1px solid #ddd; }
+
+    /* FOTO KIEZER GALERIJ */
+    .icon-picker-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 10px; max-height: 220px; overflow-y: auto; border: 1px solid var(--border-color); padding: 10px; border-radius: 6px; background: #fafafa; margin-bottom: 15px; }
+    .icon-option { border: 2px solid transparent; border-radius: 8px; padding: 5px; cursor: pointer; text-align: center; background: white; transition: all 0.2s; }
+    .icon-option:hover, .icon-option.selected { border-color: var(--primary); background: #e6f0fa; }
+    .icon-option img { width: 60px; height: 60px; object-fit: cover; border-radius: 6px; }
+    .icon-option span { font-size: 0.75rem; display: block; margin-top: 3px; color: #333; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
     /* Subtabs & Kaarten */
-    .sub-tabs { display: flex; gap: 8px; margin-bottom: 15px; }
+    .sub-tabs { display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap; }
     .sub-tab-btn { background: #f1f5f9; border: 1px solid var(--border-color); padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.85rem; }
     .sub-tab-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
     .sub-content { display: none; }
@@ -122,7 +146,7 @@
 
     /* Tabellen & Badges */
     .table-container { overflow-x: auto; margin-top: 15px; }
-    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; min-width: 750px; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; min-width: 600px; }
     th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
     th { background: var(--primary); color: white; }
     tr:nth-child(even) { background: #f8fafc; }
@@ -141,7 +165,7 @@
     @media print {
       body { background: white; padding: 0; }
       #appContainer { box-shadow: none; padding: 0; max-width: 100%; }
-      .app-header, .nav-tabs, .sub-tabs, .form-card, .actions-bar, .btn, button, .quick-drinks-grid { display: none !important; }
+      .app-header, .nav-tabs, .sub-tabs, .form-card, .actions-bar, .btn, button, .pos-grid, .progress-box { display: none !important; }
       table { border: 1px solid #000; }
       th, td { border: 1px solid #000; color: #000; }
     }
@@ -193,7 +217,7 @@
       <button class="tab-btn active" id="tabBtnHome" onclick="switchTab('homeTab', this)">Home Dashboard</button>
       <button class="tab-btn" id="tabBtnDialyse" style="display:none;" onclick="switchTab('dialyseTab', this)">Dialyse Beheer</button>
       <button class="tab-btn" id="tabBtnBp" style="display:none;" onclick="switchTab('bpTab', this)">Bloeddruk & Hartslag</button>
-      <button class="tab-btn" id="tabBtnVocht" style="display:none;" onclick="switchTab('vochtTab', this)">Vochtmonitor</button>
+      <button class="tab-btn" id="tabBtnVocht" style="display:none;" onclick="switchTab('vochtTab', this)">POS Vocht Intake</button>
       <button class="tab-btn" id="tabBtnRitten" style="display:none;" onclick="switchTab('rittenTab', this)">Rittenapp</button>
       <button class="tab-btn admin-tab" id="adminTabBtn" style="display:none;" onclick="switchTab('adminTab', this)">Gebruikersbeheer (Admin)</button>
     </div>
@@ -263,13 +287,13 @@
           <p>Metingen registreren met dialyse-kleurcodering</p>
         </div>
 
-        <!-- Tegel Vochtmonitor -->
+        <!-- Tegel POS Vocht Intake -->
         <div class="app-tile" id="tileVocht" style="display:none;" onclick="openModule('vochtTab', 'tabBtnVocht')">
           <div class="app-tile-icon" style="background: linear-gradient(135deg, #0284c7, #0369a1);">
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
           </div>
-          <h3>Vochtmonitor</h3>
-          <p>Dagelijkse vochtinname & limiet bijhouden</p>
+          <h3>POS Vocht Intake</h3>
+          <p>Dranktegels, 1000ml limiet & beheer</p>
         </div>
 
         <!-- Tegel Rittenapp -->
@@ -432,85 +456,132 @@
       </div>
     </div>
 
-    <!-- TAB 3: VOCHTMONITOR MODULE (VOLLEDIG INGEBOUWD) -->
+    <!-- TAB 3: POS VOCHT INTAKE & BEHEER (1000ML LIMIET) -->
     <div id="vochtTab" class="tab-content">
-      <div class="vocht-progress-card">
-        <div class="vocht-progress-top">
-          <div>
-            <h3 style="color: var(--primary); margin-bottom: 4px;">Dagelijkse Vochtbalans</h3>
-            <p style="font-size: 0.9rem; color: #475569;">
-              Gedronken op geselecteerde dag: <strong id="vochtTotalText">0 ml</strong> van <strong id="vochtLimitText">1000 ml</strong>
-              (<span id="vochtRemainingText">1000 ml over</span>)
-            </p>
-          </div>
-          <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-            <label for="vochtDateFilter" style="margin-bottom:0;">Datum:</label>
-            <input type="date" id="vochtDateFilter" onchange="renderVochtTable()" style="padding: 7px 10px;">
-            <div id="vochtLimitControl" style="display:flex; gap:6px; align-items:center;">
-              <label for="vochtLimitInput" style="margin-bottom:0;">Limiet (ml):</label>
-              <input type="number" id="vochtLimitInput" value="1000" min="100" step="50" style="width:95px; padding:7px 10px;">
-              <button type="button" class="btn" style="width:auto; padding:8px 12px; font-size:0.85rem;" onclick="saveVochtLimit()">Opslaan</button>
-            </div>
-          </div>
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:10px;">
+        <h2 style="color: var(--primary); font-size: 1.25rem;">POS Vocht Intake & Beheer (Limiet 1000ml)</h2>
+        <span id="vochtDateLabel" style="font-size: 0.9rem; color: #555;">Vandaag</span>
+      </div>
+
+      <!-- 1000ml Voortgangsbalk -->
+      <div class="progress-box">
+        <div class="progress-info">
+          <span id="progressText">Totaal Vandaag: 0 ml / 1000 ml</span>
+          <span id="progressPercentage">0%</span>
         </div>
-        <div class="progress-track">
-          <div class="progress-fill" id="vochtProgressBar">0%</div>
+        <div class="progress-bar-container">
+          <div id="progressBar" class="progress-bar"></div>
         </div>
       </div>
 
-      <div class="form-card" id="vochtFormCard">
-        <h3 style="margin-bottom: 12px; color: var(--primary);">Snel Drankje Toevoegen</h3>
-        <div class="quick-drinks-grid">
-          <button type="button" class="drink-quick-btn" onclick="quickAddVocht('Kopje koffie', 125)">Koffie<span>+ 125 ml</span></button>
-          <button type="button" class="drink-quick-btn" onclick="quickAddVocht('Glas water', 200)">Glas water<span>+ 200 ml</span></button>
-          <button type="button" class="drink-quick-btn" onclick="quickAddVocht('Mok thee / koffie', 250)">Mok thee<span>+ 250 ml</span></button>
-          <button type="button" class="drink-quick-btn" onclick="quickAddVocht('Kom soep / vla', 250)">Soep / Vla<span>+ 250 ml</span></button>
-          <button type="button" class="drink-quick-btn" onclick="quickAddVocht('Flesje / groot glas', 330)">Groot glas<span>+ 330 ml</span></button>
-          <button type="button" class="drink-quick-btn" onclick="quickAddVocht('Slokje / medicatie', 50)">Medicatie<span>+ 50 ml</span></button>
-        </div>
+      <div class="sub-tabs">
+        <button class="sub-tab-btn active" onclick="switchVochtSubTab('posSub', this)">POS Bestelpaneel</button>
+        <button class="sub-tab-btn" onclick="switchVochtSubTab('vochtLogSub', this)">Inname Overzicht & Export</button>
+        <button class="sub-tab-btn" id="vochtManageDrinksBtn" onclick="switchVochtSubTab('manageDrinksSub', this)">Dranken Beheren & Foto's</button>
+        <button class="sub-tab-btn" id="vochtManageAmountsBtn" onclick="switchVochtSubTab('manageAmountsSub', this)">Vaste Hoeveelheden Beheren</button>
+      </div>
 
-        <form onsubmit="handleVochtSubmit(event)">
-          <div class="form-grid" style="margin-bottom: 12px;">
-            <div class="form-group">
-              <label>Drank / Omschrijving</label>
-              <input type="text" id="vochtDrinkInput" placeholder="bijv. Water, Koffie, Melk" required>
-            </div>
-            <div class="form-group">
-              <label>Hoeveelheid (ml)</label>
-              <input type="number" id="vochtAmountInput" placeholder="bijv. 200" min="1" required>
-            </div>
-            <div class="form-group">
-              <label>Tijdstip</label>
-              <input type="time" id="vochtTimeInput" required>
-            </div>
+      <!-- SUBTAB 3A: POS BESTELPANEEL -->
+      <div id="posSub" class="sub-content active">
+        <h3 style="margin-bottom: 15px; color: #333;">Tik op een drankje om toe te voegen aan je inname:</h3>
+        <div id="posGrid" class="pos-grid"></div>
+      </div>
+
+      <!-- SUBTAB 3B: INNAME OVERZICHT & EXPORT -->
+      <div id="vochtLogSub" class="sub-content">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+          <h3 style="color: #333;">Vandaag Ingedrukte / Genomen Dranken</h3>
+          <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <button class="btn btn-excel" onclick="exportVochtExcel()">Exporteer naar Excel (.xlsx)</button>
+            <button class="btn btn-secondary" onclick="window.print()">Print / PDF</button>
           </div>
-          <button type="submit" class="btn">Vochtinname Toevoegen</button>
-        </form>
-      </div>
+        </div>
 
-      <div class="actions-bar">
-        <h3 style="color: #333;">Geregistreerde Vochtinname</h3>
-        <div style="display: flex; gap: 10px;">
-          <button class="btn btn-excel" onclick="exportVochtExcel()">Excel (.xlsx)</button>
-          <button class="btn btn-pdf" onclick="window.print()">Print / PDF</button>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Tijdstip</th>
+                <th>Drankje</th>
+                <th>Hoeveelheid (ml)</th>
+                <th>Actie</th>
+              </tr>
+            </thead>
+            <tbody id="logTableBody">
+              <tr><td colspan="4" style="text-align:center;">Geen inname geregistreerd vandaag.</td></tr>
+            </tbody>
+          </table>
         </div>
       </div>
 
-      <div class="table-container">
-        <table>
-          <thead>
-            <tr>
-              <th>Datum</th>
-              <th>Tijdstip</th>
-              <th>Drank / Omschrijving</th>
-              <th>Hoeveelheid</th>
-              <th>Actie</th>
-            </tr>
-          </thead>
-          <tbody id="vochtTableBody">
-            <tr><td colspan="5" style="text-align:center;">Geen vochtinname gevonden voor deze dag.</td></tr>
-          </tbody>
-        </table>
+      <!-- SUBTAB 3C: DRANKEN BEHEREN & FOTO'S -->
+      <div id="manageDrinksSub" class="sub-content">
+        <div class="form-card" id="vochtAddDrinkCard">
+          <h3 style="margin-bottom: 15px; color: #333;">Nieuwe Drank Tegel Toevoegen</h3>
+          <form onsubmit="handleAddDrink(event)" class="form-grid">
+            <div class="form-group">
+              <label>Naam Drankje</label>
+              <input type="text" id="newDrinkName" placeholder="bijv. Latte Macchiato" required>
+            </div>
+            
+            <div class="form-group" style="grid-column: 1 / -1;">
+              <label>Kies een levensechte foto uit de bibliotheek (of plak hieronder een eigen afbeeldings-URL)</label>
+              <div id="iconPickerGrid" class="icon-picker-grid"></div>
+            </div>
+
+            <div class="form-group">
+              <label>Geselecteerde Foto URL</label>
+              <input type="text" id="newDrinkImage" placeholder="Kies hierboven een foto of plak een URL..." required>
+            </div>
+
+            <div style="display: flex; align-items: flex-end;">
+              <button type="submit" class="btn">Tegel Toevoegen</button>
+            </div>
+          </form>
+        </div>
+
+        <h3 style="margin: 20px 0 15px 0; color: #333;">Bestaande Drank Tegels</h3>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Afbeelding</th>
+                <th>Naam</th>
+                <th>Actie</th>
+              </tr>
+            </thead>
+            <tbody id="drinksTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- SUBTAB 3D: VASTE HOEVEELHEDEN BEHEREN -->
+      <div id="manageAmountsSub" class="sub-content">
+        <div class="form-card" id="vochtAddAmountCard">
+          <h3 style="margin-bottom: 15px; color: #333;">Nieuwe Vaste Hoeveelheid Toevoegen (ml)</h3>
+          <form onsubmit="handleAddAmount(event)" class="form-grid">
+            <div class="form-group">
+              <label>Hoeveelheid in ml</label>
+              <input type="number" id="newAmountVal" placeholder="bijv. 250" required>
+            </div>
+            <div style="display: flex; align-items: flex-end;">
+              <button type="submit" class="btn">Hoeveelheid Toevoegen</button>
+            </div>
+          </form>
+        </div>
+
+        <h3 style="margin: 20px 0 15px 0; color: #333;">Bestaande Vaste Hoeveelheden</h3>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Hoeveelheid (ml)</th>
+                <th>Actie</th>
+              </tr>
+            </thead>
+            <tbody id="amountsTableBody"></tbody>
+          </table>
+        </div>
       </div>
     </div>
 
@@ -722,9 +793,28 @@
     </div>
   </div>
 
+  <!-- HOEVEELHEID KIEZEN MODAL VOOR POS VOCHT INTAKE -->
+  <div id="amountModal" class="modal-overlay">
+    <div class="modal">
+      <h3 id="modalDrinkTitle">Drankje</h3>
+      <p style="margin-bottom: 15px; color: #666; font-size: 0.9rem;">Kies een vaste hoeveelheid of vul een eigen waarde in:</p>
+      
+      <div id="amountButtonsContainer" class="amount-buttons"></div>
+
+      <div class="custom-amount-box">
+        <input type="number" id="customAmountInput" placeholder="Aangepast ml...">
+        <button class="btn" style="width:auto;" onclick="submitCustomAmount()">Toevoegen</button>
+      </div>
+
+      <button class="btn btn-secondary" style="width: 100%; margin-top: 10px;" onclick="closeModal()">Annuleren</button>
+    </div>
+  </div>
+
 <script>
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('./sw.js').catch(e => console.log(e));
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js').catch(e => console.log(e));
+    });
   }
 
   const firebaseConfig = {
@@ -740,25 +830,61 @@
   const auth = firebase.auth();
   const db = firebase.firestore();
 
+  const photoLibrary = [
+    { name: "Cappuccino", url: "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=300&q=80" },
+    { name: "Senseo", url: "https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=300&q=80" },
+    { name: "Automaten koffie", url: "https://images.unsplash.com/photo-1517256064527-09c73fc73e38?auto=format&fit=crop&w=300&q=80" },
+    { name: "Espresso", url: "https://images.unsplash.com/photo-1510591509098-f4fdc6d0ff04?auto=format&fit=crop&w=300&q=80" },
+    { name: "Creamkoffie", url: "https://images.unsplash.com/photo-1534778101976-62847782c213?auto=format&fit=crop&w=300&q=80" },
+    { name: "Thee", url: "https://images.unsplash.com/photo-1576092768241-dec231879fc3?auto=format&fit=crop&w=300&q=80" },
+    { name: "Vruchtenthee", url: "https://images.unsplash.com/photo-1597481499750-3e6b22637e12?auto=format&fit=crop&w=300&q=80" },
+    { name: "Water", url: "https://images.unsplash.com/photo-1548839140-29a749e1cf4d?auto=format&fit=crop&w=300&q=80" },
+    { name: "Cola", url: "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?auto=format&fit=crop&w=300&q=80" },
+    { name: "Sinas", url: "https://images.unsplash.com/photo-1629203851122-3726ecdf080e?auto=format&fit=crop&w=300&q=80" },
+    { name: "7Up", url: "https://images.unsplash.com/photo-1625772299848-391b6a87d7b3?auto=format&fit=crop&w=300&q=80" },
+    { name: "Ranja", url: "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?auto=format&fit=crop&w=300&q=80" },
+    { name: "Casis", url: "https://images.unsplash.com/photo-1536935338788-846bb9981813?auto=format&fit=crop&w=300&q=80" },
+    { name: "Breezer", url: "https://images.unsplash.com/photo-1563227812-0ea4c22e6cc8?auto=format&fit=crop&w=300&q=80" },
+    { name: "Bubbeltjeswijn", url: "https://images.unsplash.com/photo-1578916171728-46686eac8d58?auto=format&fit=crop&w=300&q=80" },
+    { name: "Glas bier", url: "https://images.unsplash.com/photo-1535958636474-b021ee887b13?auto=format&fit=crop&w=300&q=80" },
+    { name: "Fles bier", url: "https://images.unsplash.com/photo-1608270105747-23f269a7b1b3?auto=format&fit=crop&w=300&q=80" }
+  ];
+
+  const defaultDrinks = [
+    { name: "Cappuccino", image: "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=300&q=80" },
+    { name: "Senseo", image: "https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=300&q=80" },
+    { name: "Automaten koffie", image: "https://images.unsplash.com/photo-1517256064527-09c73fc73e38?auto=format&fit=crop&w=300&q=80" },
+    { name: "Espresso", image: "https://images.unsplash.com/photo-1510591509098-f4fdc6d0ff04?auto=format&fit=crop&w=300&q=80" },
+    { name: "Creamkoffie", image: "https://images.unsplash.com/photo-1534778101976-62847782c213?auto=format&fit=crop&w=300&q=80" },
+    { name: "Thee", image: "https://images.unsplash.com/photo-1576092768241-dec231879fc3?auto=format&fit=crop&w=300&q=80" },
+    { name: "Vruchtenthee", image: "https://images.unsplash.com/photo-1597481499750-3e6b22637e12?auto=format&fit=crop&w=300&q=80" },
+    { name: "Water", image: "https://images.unsplash.com/photo-1548839140-29a749e1cf4d?auto=format&fit=crop&w=300&q=80" },
+    { name: "Cola", image: "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?auto=format&fit=crop&w=300&q=80" },
+    { name: "Sinas", image: "https://images.unsplash.com/photo-1629203851122-3726ecdf080e?auto=format&fit=crop&w=300&q=80" },
+    { name: "7Up", image: "https://images.unsplash.com/photo-1625772299848-391b6a87d7b3?auto=format&fit=crop&w=300&q=80" },
+    { name: "Ranja", image: "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?auto=format&fit=crop&w=300&q=80" },
+    { name: "Casis", image: "https://images.unsplash.com/photo-1536935338788-846bb9981813?auto=format&fit=crop&w=300&q=80" },
+    { name: "Breezer", image: "https://images.unsplash.com/photo-1563227812-0ea4c22e6cc8?auto=format&fit=crop&w=300&q=80" },
+    { name: "Bubbeltjeswijn", image: "https://images.unsplash.com/photo-1578916171728-46686eac8d58?auto=format&fit=crop&w=300&q=80" },
+    { name: "Glas bier", image: "https://images.unsplash.com/photo-1535958636474-b021ee887b13?auto=format&fit=crop&w=300&q=80" },
+    { name: "Fles bier", image: "https://images.unsplash.com/photo-1608270105747-23f269a7b1b3?auto=format&fit=crop&w=300&q=80" }
+  ];
+
   let isRegisterMode = false;
   let currentUser = null;
   let currentUserData = null;
-  let vochtUnsubscribe = null;
 
   // Module lijsten
   let dialyseList = [];
   let bpList = [];
-  let vochtList = [];
-  let vochtDailyLimit = 1000;
+  let drinksList = defaultDrinks.slice();
+  let amountsList = [75, 150, 200, 250, 300, 500];
+  let todayIntake = [];
+  let selectedDrinkForModal = null;
   let rittenList = [];
   let dropdownOptions = { Bedrijf: [], Chauffeur: [], Kenteken: [], Vanaf: [], Naar: [] };
 
   auth.onAuthStateChanged(user => {
-    if (vochtUnsubscribe) {
-      vochtUnsubscribe();
-      vochtUnsubscribe = null;
-    }
-
     if (user) {
       currentUser = user;
       document.getElementById('authContainer').style.display = 'none';
@@ -836,6 +962,7 @@
   function showApp(email) {
     document.getElementById('appContainer').style.display = 'block';
     document.getElementById('userEmailDisplay').innerText = email;
+    document.getElementById('vochtDateLabel').innerText = new Date().toLocaleDateString('nl-NL', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
     const isAdmin = currentUserData.role === 'admin';
     const perms = currentUserData.permissions || {};
@@ -869,18 +996,17 @@
       loadBpMeasurements();
     }
 
-    // 3. Vochtmonitor (ingebouwd)
+    // 3. POS Vocht Intake & Beheer
     const hasVocht = isAdmin || vochtPerm !== 'none';
     document.getElementById('tabBtnVocht').style.display = hasVocht ? 'block' : 'none';
     document.getElementById('tileVocht').style.display = hasVocht ? 'flex' : 'none';
     if (hasVocht) {
       visibleCount++;
       const canWriteVocht = isAdmin || vochtPerm === 'write';
-      document.getElementById('vochtFormCard').style.display = canWriteVocht ? 'block' : 'none';
-      document.getElementById('vochtLimitControl').style.display = canWriteVocht ? 'flex' : 'none';
-      document.getElementById('vochtDateFilter').value = getLocalDateKey();
-      document.getElementById('vochtTimeInput').value = getCurrentTimeStr();
-      initVochtModule();
+      document.getElementById('vochtAddDrinkCard').style.display = canWriteVocht ? 'block' : 'none';
+      document.getElementById('vochtAddAmountCard').style.display = canWriteVocht ? 'block' : 'none';
+      renderPhotoPicker();
+      loadVochtSettingsAndData();
     }
 
     // 4. Rittenapp
@@ -919,8 +1045,15 @@
   }
 
   function switchSubTab(subId, btn) {
-    document.querySelectorAll('.sub-content').forEach(el => el.classList.remove('active'));
-    document.querySelectorAll('.sub-tab-btn').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('#rittenTab .sub-content').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('#rittenTab .sub-tab-btn').forEach(el => el.classList.remove('active'));
+    document.getElementById(subId).classList.add('active');
+    if (btn) btn.classList.add('active');
+  }
+
+  function switchVochtSubTab(subId, btn) {
+    document.querySelectorAll('#vochtTab .sub-content').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('#vochtTab .sub-tab-btn').forEach(el => el.classList.remove('active'));
     document.getElementById(subId).classList.add('active');
     if (btn) btn.classList.add('active');
   }
@@ -929,169 +1062,371 @@
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
   }
 
-  function getCurrentTimeStr(date = new Date()) {
-    return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+  function canWriteVocht() {
+    if (!currentUserData) return false;
+    if (currentUserData.role === 'admin') return true;
+    return (currentUserData.permissions && currentUserData.permissions.vocht === 'write');
   }
 
-  // --- MODULE 2: INGEBOUWDE VOCHTMONITOR & DASHBOARD SYNC ---
-  function initVochtModule() {
-    if (!currentUser) return;
+  // --- MODULE 2: POS VOCHT INTAKE & BEHEER ---
+  function renderPhotoPicker() {
+    const grid = document.getElementById('iconPickerGrid');
+    grid.innerHTML = '';
 
-    // 1. Persoonlijke daglimiet ophalen
+    photoLibrary.forEach(item => {
+      const opt = document.createElement('div');
+      opt.className = 'icon-option';
+      opt.onclick = () => selectPhoto(item.url, opt);
+      opt.innerHTML = `
+        <img src="${item.url}" alt="${item.name}">
+        <span>${item.name}</span>
+      `;
+      grid.appendChild(opt);
+    });
+  }
+
+  function selectPhoto(url, element) {
+    document.querySelectorAll('.icon-option').forEach(el => el.classList.remove('selected'));
+    element.classList.add('selected');
+    document.getElementById('newDrinkImage').value = url;
+  }
+
+  function loadVochtSettingsAndData() {
+    drinksList = defaultDrinks.slice();
+    amountsList = [75, 150, 200, 250, 300, 500];
+    renderPOSGrid();
+    renderDrinksTable();
+    renderAmountsTable();
+
     db.collection('vocht_settings').doc(currentUser.uid).get().then(doc => {
-      if (doc.exists && doc.data().dailyLimit) {
-        vochtDailyLimit = Number(doc.data().dailyLimit) || 1000;
+      if (doc.exists) {
+        const data = doc.data();
+        if (data.drinks && data.drinks.length > 0) drinksList = data.drinks;
+        if (data.amounts && data.amounts.length > 0) amountsList = data.amounts;
+        renderPOSGrid();
+        renderDrinksTable();
+        renderAmountsTable();
       } else {
-        vochtDailyLimit = 1000;
+        // Fallback op gedeelde 'config' indien aanwezig
+        db.collection('vocht_settings').doc('config').get().then(cfgDoc => {
+          if (cfgDoc.exists) {
+            const cData = cfgDoc.data();
+            if (cData.drinks && cData.drinks.length > 0) drinksList = cData.drinks;
+            if (cData.amounts && cData.amounts.length > 0) amountsList = cData.amounts;
+          }
+          renderPOSGrid();
+          renderDrinksTable();
+          renderAmountsTable();
+        }).catch(() => {});
       }
-      document.getElementById('vochtLimitInput').value = vochtDailyLimit;
-      renderVochtTable();
-    }).catch(() => renderVochtTable());
+    }).catch(() => {});
 
-    // 2. Live luisteren naar alle vochtinnames van deze gebruiker
-    if (vochtUnsubscribe) vochtUnsubscribe();
-    vochtUnsubscribe = db.collection('vocht_intake')
-      .where('userId', '==', currentUser.uid)
-      .onSnapshot(snapshot => {
-        vochtList = [];
-        snapshot.forEach(doc => {
-          const d = doc.data();
-          const dateKey = (typeof d.dateKey === 'string' && d.dateKey.length >= 10)
-            ? d.dateKey.slice(0, 10)
-            : (d.datum ? String(d.datum).slice(0, 10) : getLocalDateKey());
-          const amount = Number(d.amount ?? d.ml ?? d.hoeveelheid ?? 0) || 0;
-          vochtList.push({
+    loadTodayIntake();
+  }
+
+  function loadTodayIntake() {
+    const todayKey = getLocalDateKey();
+    db.collection('vocht_intake').where('userId', '==', currentUser.uid).get().then(snapshot => {
+      todayIntake = [];
+      snapshot.forEach(doc => {
+        const d = doc.data();
+        const docDate = (typeof d.dateKey === 'string' && d.dateKey.length >= 10)
+          ? d.dateKey.slice(0, 10)
+          : (d.datum ? String(d.datum).slice(0, 10) : '');
+        if (docDate === todayKey) {
+          todayIntake.push({
             id: doc.id,
-            drink: d.drink || d.drank || d.note || 'Drankje',
-            amount,
-            dateKey,
-            time: d.time || '--:--'
+            drinkName: d.drinkName || d.drink || d.drank || 'Drankje',
+            drinkImage: d.drinkImage || 'https://images.unsplash.com/photo-1548839140-29a749e1cf4d?auto=format&fit=crop&w=300&q=80',
+            amount: Number(d.amount ?? d.ml ?? d.hoeveelheid ?? 0) || 0,
+            time: d.time || '-',
+            dateKey: docDate
           });
-        });
-        vochtList.sort((a, b) => ((b.dateKey || '') + (b.time || '')).localeCompare((a.dateKey || '') + (a.time || '')));
-        renderVochtTable();
+        }
       });
+
+      todayIntake.sort((a, b) => (b.time || '').localeCompare(a.time || ''));
+      renderIntakeLog();
+      updateProgressBar();
+    }).catch(err => console.log("Fout bij ophalen innames:", err));
   }
 
-  function saveVochtLimit() {
-    const val = parseInt(document.getElementById('vochtLimitInput').value);
-    if (!val || val < 100) { alert('Voer een geldige daglimiet in (minimaal 100 ml).'); return; }
-    vochtDailyLimit = val;
-    db.collection('vocht_settings').doc(currentUser.uid).set({
-      dailyLimit: vochtDailyLimit,
-      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-    }, { merge: true }).then(() => {
-      renderVochtTable();
-      alert(`Daglimiet opgeslagen op ${vochtDailyLimit} ml.`);
+  function renderPOSGrid() {
+    const grid = document.getElementById('posGrid');
+    grid.innerHTML = '';
+
+    drinksList.forEach(drink => {
+      const tile = document.createElement('div');
+      tile.className = 'pos-tile';
+      tile.onclick = () => openAmountModal(drink);
+      tile.innerHTML = `
+        <img src="${drink.image}" alt="${drink.name}" onerror="this.src='https://images.unsplash.com/photo-1548839140-29a749e1cf4d?auto=format&fit=crop&w=300&q=80'">
+        <span>${drink.name}</span>
+      `;
+      grid.appendChild(tile);
     });
   }
 
-  function quickAddVocht(drinkName, amountMl) {
-    const selectedDate = document.getElementById('vochtDateFilter').value || getLocalDateKey();
-    addVochtRecord(drinkName, amountMl, selectedDate, getCurrentTimeStr());
-  }
+  function openAmountModal(drink) {
+    if (!canWriteVocht()) {
+      alert("Je hebt alleen leesrechten voor de Vochtmonitor.");
+      return;
+    }
+    selectedDrinkForModal = drink;
+    document.getElementById('modalDrinkTitle').innerText = drink.name;
+    
+    const container = document.getElementById('amountButtonsContainer');
+    container.innerHTML = '';
 
-  function handleVochtSubmit(event) {
-    event.preventDefault();
-    const drink = document.getElementById('vochtDrinkInput').value.trim();
-    const amount = parseInt(document.getElementById('vochtAmountInput').value);
-    const time = document.getElementById('vochtTimeInput').value || getCurrentTimeStr();
-    const selectedDate = document.getElementById('vochtDateFilter').value || getLocalDateKey();
-
-    if (!drink || !amount || amount <= 0) return;
-
-    addVochtRecord(drink, amount, selectedDate, time).then(() => {
-      document.getElementById('vochtDrinkInput').value = '';
-      document.getElementById('vochtAmountInput').value = '';
-      document.getElementById('vochtTimeInput').value = getCurrentTimeStr();
+    amountsList.slice().sort((a,b) => a - b).forEach(amt => {
+      const btn = document.createElement('button');
+      btn.className = 'amount-btn';
+      btn.innerText = `${amt} ml`;
+      btn.onclick = () => addIntake(amt);
+      container.appendChild(btn);
     });
+
+    document.getElementById('customAmountInput').value = '';
+    document.getElementById('amountModal').style.display = 'flex';
   }
 
-  function addVochtRecord(drink, amount, dateKey, time) {
-    return db.collection('vocht_intake').add({
-      userId: currentUser.uid,
-      drink,
-      amount: Number(amount),
-      dateKey,
-      time,
-      timestamp: firebase.firestore.FieldValue.serverTimestamp()
-    }).catch(e => alert(e.message));
+  function closeModal() {
+    document.getElementById('amountModal').style.display = 'none';
+    selectedDrinkForModal = null;
   }
 
-  function deleteVocht(id) {
-    if (confirm('Vochtinname verwijderen?')) {
-      db.collection('vocht_intake').doc(id).delete();
+  function submitCustomAmount() {
+    const val = parseInt(document.getElementById('customAmountInput').value);
+    if (!isNaN(val) && val > 0) {
+      addIntake(val);
+    } else {
+      alert("Vul een geldig aantal ml in.");
     }
   }
 
-  function renderVochtTable() {
-    const todayKey = getLocalDateKey();
-    const selectedDate = document.getElementById('vochtDateFilter').value || todayKey;
+  function addIntake(amount) {
+    if (!selectedDrinkForModal || !currentUser) return;
 
-    // 1. Home Dashboard kaart altijd op basis van VANDAAG
-    const todayItems = vochtList.filter(i => i.dateKey === todayKey);
-    const todayTotalMl = todayItems.reduce((sum, i) => sum + i.amount, 0);
-    const todayPct = Math.round((todayTotalMl / vochtDailyLimit) * 100);
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
+    const dateKey = getLocalDateKey();
 
-    document.getElementById('dashVochtValue').innerText = `${todayPct}%`;
-    document.getElementById('dashVochtSub').innerText = `${todayTotalMl} ml / ${vochtDailyLimit} ml`;
+    const intakeRecord = {
+      userId: currentUser.uid,
+      drinkName: selectedDrinkForModal.name,
+      drinkImage: selectedDrinkForModal.image,
+      amount: parseInt(amount),
+      time: timeStr,
+      dateKey: dateKey,
+      timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    };
+
+    db.collection('vocht_intake').add(intakeRecord).then(() => {
+      closeModal();
+      loadTodayIntake();
+    }).catch(err => {
+      alert("Fout bij opslaan inname: " + err.message);
+    });
+  }
+
+  function deleteIntake(id) {
+    if (!canWriteVocht()) return;
+    if (confirm("Weet je zeker dat je dit innamerecord wilt verwijderen?")) {
+      db.collection('vocht_intake').doc(id).delete().then(() => {
+        loadTodayIntake();
+      });
+    }
+  }
+
+  function updateProgressBar() {
+    const totalMl = todayIntake.reduce((sum, item) => sum + (parseInt(item.amount) || 0), 0);
+    const rawPct = Math.round((totalMl / 1000) * 100);
+    const barPct = Math.min(rawPct, 100);
+
+    document.getElementById('progressText').innerText = `Totaal Vandaag: ${totalMl} ml / 1000 ml`;
+    document.getElementById('progressPercentage').innerText = `${rawPct}%`;
+
+    const bar = document.getElementById('progressBar');
+    bar.style.width = `${barPct}%`;
+
+    let colorVar = 'var(--success)';
+    let badgeClass = 'bg-green';
+    if (totalMl > 1000) {
+      colorVar = 'var(--danger)';
+      badgeClass = 'bg-red';
+    } else if (totalMl >= 800) {
+      colorVar = 'var(--warning)';
+      badgeClass = 'bg-orange';
+    }
+    bar.style.background = colorVar;
+
+    // Sync naar Home Dashboard kaart
+    document.getElementById('dashVochtValue').innerText = `${rawPct}%`;
+    document.getElementById('dashVochtSub').innerText = `${totalMl} ml / 1000 ml`;
     const dashBadge = document.getElementById('dashVochtBadge');
-    dashBadge.innerText = `${todayPct}%`;
-    dashBadge.className = 'badge ' + (todayPct > 100 ? 'bg-red' : (todayPct >= 80 ? 'bg-orange' : 'bg-green'));
+    dashBadge.innerText = `${rawPct}%`;
+    dashBadge.className = `badge ${badgeClass}`;
+  }
 
-    // 2. Vochtmonitor tabblad op basis van gekozen datum
-    const dayItems = vochtList.filter(i => i.dateKey === selectedDate);
-    const dayTotalMl = dayItems.reduce((sum, i) => sum + i.amount, 0);
-    const dayPct = Math.round((dayTotalMl / vochtDailyLimit) * 100);
-    const remaining = vochtDailyLimit - dayTotalMl;
-
-    document.getElementById('vochtTotalText').innerText = `${dayTotalMl} ml`;
-    document.getElementById('vochtLimitText').innerText = `${vochtDailyLimit} ml`;
-    document.getElementById('vochtRemainingText').innerText = remaining >= 0
-      ? `${remaining} ml over`
-      : `${Math.abs(remaining)} ml over limiet!`;
-
-    const bar = document.getElementById('vochtProgressBar');
-    bar.style.width = `${Math.min(dayPct, 100)}%`;
-    bar.innerText = `${dayPct}%`;
-    bar.style.backgroundColor = dayPct > 100 ? 'var(--danger)' : (dayPct >= 80 ? '#f59e0b' : 'var(--success)');
-
-    const tbody = document.getElementById('vochtTableBody');
+  function renderIntakeLog() {
+    const tbody = document.getElementById('logTableBody');
     tbody.innerHTML = '';
-    const isAdmin = currentUserData && currentUserData.role === 'admin';
-    const vochtPerm = currentUserData && currentUserData.permissions ? currentUserData.permissions.vocht : 'none';
-    const canWrite = isAdmin || vochtPerm === 'write';
+    const allowEdit = canWriteVocht();
 
-    if (dayItems.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Geen vochtinname gevonden voor deze dag.</td></tr>';
+    if (todayIntake.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Geen inname geregistreerd vandaag.</td></tr>';
       return;
     }
 
-    dayItems.forEach(item => {
-      const delBtn = canWrite ? `<button class="btn btn-danger" onclick="deleteVocht('${item.id}')">Verwijderen</button>` : '-';
-      tbody.innerHTML += `
-        <tr>
-          <td>${item.dateKey}</td>
-          <td>${item.time}</td>
-          <td><b>${item.drink}</b></td>
-          <td>${item.amount} ml</td>
-          <td>${delBtn}</td>
-        </tr>`;
+    todayIntake.forEach(item => {
+      const tr = document.createElement('tr');
+      const delBtn = allowEdit
+        ? `<button class="btn btn-danger" style="padding: 5px 10px; font-size: 0.8rem;" onclick="deleteIntake('${item.id}')">Verwijderen</button>`
+        : '-';
+      tr.innerHTML = `
+        <td>${item.time || '-'}</td>
+        <td style="display: flex; align-items: center; gap: 10px;">
+          <img src="${item.drinkImage}" class="drink-preview" onerror="this.src='https://images.unsplash.com/photo-1548839140-29a749e1cf4d?auto=format&fit=crop&w=300&q=80'">
+          <b>${item.drinkName}</b>
+        </td>
+        <td><b>${item.amount} ml</b></td>
+        <td>${delBtn}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function handleAddDrink(event) {
+    event.preventDefault();
+    if (!canWriteVocht()) return;
+    const name = document.getElementById('newDrinkName').value.trim();
+    const image = document.getElementById('newDrinkImage').value.trim();
+
+    if (!name || !image) {
+      alert("Vul een naam in en kies of geef een afbeelding op.");
+      return;
+    }
+
+    drinksList.push({ name, image });
+    saveVochtSettingsToFirebase(() => {
+      document.getElementById('newDrinkName').value = '';
+      document.getElementById('newDrinkImage').value = '';
+      document.querySelectorAll('.icon-option').forEach(el => el.classList.remove('selected'));
+      renderPOSGrid();
+      renderDrinksTable();
+      alert("Dranktegel succesvol toegevoegd!");
+    });
+  }
+
+  function deleteDrink(index) {
+    if (!canWriteVocht()) return;
+    if (confirm("Weet je zeker dat je deze dranktegel wilt verwijderen?")) {
+      drinksList.splice(index, 1);
+      saveVochtSettingsToFirebase(() => {
+        renderPOSGrid();
+        renderDrinksTable();
+      });
+    }
+  }
+
+  function renderDrinksTable() {
+    const tbody = document.getElementById('drinksTableBody');
+    tbody.innerHTML = '';
+    const allowEdit = canWriteVocht();
+
+    drinksList.forEach((drink, index) => {
+      const tr = document.createElement('tr');
+      const delBtn = allowEdit
+        ? `<button class="btn btn-danger" style="padding: 5px 10px; font-size: 0.8rem;" onclick="deleteDrink(${index})">Verwijderen</button>`
+        : '-';
+      tr.innerHTML = `
+        <td><img src="${drink.image}" class="drink-preview" onerror="this.src='https://images.unsplash.com/photo-1548839140-29a749e1cf4d?auto=format&fit=crop&w=300&q=80'"></td>
+        <td><b>${drink.name}</b></td>
+        <td>${delBtn}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function handleAddAmount(event) {
+    event.preventDefault();
+    if (!canWriteVocht()) return;
+    const val = parseInt(document.getElementById('newAmountVal').value);
+
+    if (!isNaN(val) && val > 0 && !amountsList.includes(val)) {
+      amountsList.push(val);
+      saveVochtSettingsToFirebase(() => {
+        document.getElementById('newAmountVal').value = '';
+        renderAmountsTable();
+        alert("Hoeveelheid succesvol toegevoegd!");
+      });
+    } else {
+      alert("Ongeldige of reeds bestaande hoeveelheid.");
+    }
+  }
+
+  function deleteAmount(index) {
+    if (!canWriteVocht()) return;
+    if (amountsList.length <= 1) {
+      alert("Je moet tenminste één vaste hoeveelheid behouden.");
+      return;
+    }
+    if (confirm("Weet je zeker dat je deze hoeveelheid wilt verwijderen?")) {
+      amountsList.splice(index, 1);
+      saveVochtSettingsToFirebase(() => {
+        renderAmountsTable();
+      });
+    }
+  }
+
+  function renderAmountsTable() {
+    const tbody = document.getElementById('amountsTableBody');
+    tbody.innerHTML = '';
+    const allowEdit = canWriteVocht();
+
+    amountsList.slice().sort((a,b) => a - b).forEach((amt, index) => {
+      const tr = document.createElement('tr');
+      const delBtn = allowEdit
+        ? `<button class="btn btn-danger" style="padding: 5px 10px; font-size: 0.8rem;" onclick="deleteAmount(${index})">Verwijderen</button>`
+        : '-';
+      tr.innerHTML = `
+        <td><b>${amt} ml</b></td>
+        <td>${delBtn}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function saveVochtSettingsToFirebase(callback) {
+    if (!currentUser) return;
+    db.collection('vocht_settings').doc(currentUser.uid).set({
+      drinks: drinksList,
+      amounts: amountsList
+    }).then(() => {
+      if (callback) callback();
+    }).catch(err => {
+      alert("Fout bij opslaan instellingen: " + err.message);
     });
   }
 
   function exportVochtExcel() {
-    if (vochtList.length === 0) { alert('Geen vochtgegevens om te exporteren.'); return; }
-    const data = vochtList.map(i => ({
-      "Datum": i.dateKey,
-      "Tijdstip": i.time,
-      "Drank": i.drink,
-      "Hoeveelheid (ml)": i.amount
+    if (!todayIntake || todayIntake.length === 0) {
+      alert("Geen inname gegevens voor vandaag om te exporteren.");
+      return;
+    }
+
+    let excelData = todayIntake.map(item => ({
+      "Datum": item.dateKey,
+      "Tijdstip": item.time,
+      "Drankje": item.drinkName,
+      "Hoeveelheid (ml)": item.amount
     }));
-    const ws = XLSX.utils.json_to_sheet(data);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Vochtmonitor");
-    XLSX.writeFile(wb, `Vochtmonitor_${new Date().toISOString().slice(0,10)}.xlsx`);
+
+    let worksheet = XLSX.utils.json_to_sheet(excelData);
+    let workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "VochtInname Vandaag");
+
+    XLSX.writeFile(workbook, `Vocht_Inname_${new Date().toISOString().slice(0,10)}.xlsx`);
   }
 
   // --- HOME DASHBOARD OVERIGE KAARTEN ---
@@ -1713,7 +2048,7 @@
     batch.commit().then(() => {
       alert(`${count} ritten ingepland!`);
       loadRitten();
-      switchSubTab('ritLogSub', document.querySelector('.sub-tabs button'));
+      switchSubTab('ritLogSub', document.querySelector('#rittenTab .sub-tabs button'));
     });
   }
 
